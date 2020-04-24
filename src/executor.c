@@ -61,9 +61,12 @@ void executor_exec_bin_command(commander *cmd, string_list *command)
         }
 
         // +2 b/c 1 for the initial array, and 1 more so that i can get to last index
+        debug("this: %d, should be 1 larger than the size specified by pp merge\n", (cmd->num_bin_params + 2));
         command_args = realloc(command_args, (cmd->num_bin_params + 2) * sizeof(char **));
-        command_args[cmd->num_bin_params + 2] = malloc(sizeof(NULL));
-        command_args[cmd->num_bin_params + 2] = NULL;
+        command_args[cmd->num_bin_params + 1] = malloc(sizeof(NULL));
+        command_args[cmd->num_bin_params + 1] = NULL;
+
+        pointer_pointer_debug(command_args, cmd->num_bin_params + 2);
 
         // execute the command & its arguments
         errno = 0;

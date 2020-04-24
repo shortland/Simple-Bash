@@ -20,6 +20,8 @@ void pointer_pointer_debug(char **array, int length)
 char **pointer_pointer_merge(char **ptr1, int len1, char **ptr2, int len2)
 {
     char **merged = malloc(sizeof(char **) * (len1 + len2));
+    debug("size total of new pp merge is: %d\n", (len1 + len2));
+
     int c = 0;
 
     for (int i = 0; i < len1; i++)
