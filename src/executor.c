@@ -52,6 +52,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command)
         char **command_args = malloc(2 * sizeof(char **));
         command_args[0] = malloc(strlen(full_command) + 1);
         memcpy(command_args[0], full_command, strlen(full_command));
+        command_args[0][strlen(full_command)] = '\0';
 
         // more arguments to parse.
         if (cmd->num_bin_params > 0)

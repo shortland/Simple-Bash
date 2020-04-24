@@ -28,6 +28,7 @@ char **pointer_pointer_merge(char **ptr1, int len1, char **ptr2, int len2)
     {
         merged[c] = malloc(strlen(ptr1[i]) + 1);
         memcpy(merged[c], ptr1[i], strlen(ptr1[i]));
+        merged[c][strlen(ptr1[i])] = '\0';
 
         c++;
     }
@@ -36,6 +37,7 @@ char **pointer_pointer_merge(char **ptr1, int len1, char **ptr2, int len2)
     {
         merged[c] = malloc(strlen(ptr2[i]) + 1);
         memcpy(merged[c], ptr2[i], strlen(ptr2[i]));
+        merged[c][strlen(ptr2[i])] = '\0';
 
         c++;
     }
