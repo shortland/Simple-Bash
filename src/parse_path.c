@@ -13,7 +13,7 @@
  * @return char *string - representing the list of all directories where executable binaries exist. Typically delimited by ':'.
  * @return NULL - when no env path variable found - may need to configure globals.h for system. 
  */
-char *parse_path_string(char *envp[])
+char *parse_path_string(char *envp[], const char *env_key)
 {
     /**
      * Split the envp variable by new line, then split each new line by "=" sign.
@@ -25,7 +25,7 @@ char *parse_path_string(char *envp[])
 
     while (envp[i] != NULL)
     {
-        token = strtok(envp[i], ENV_PATH_DELIM);
+        token = strtok(envp[i], ENV_DELIM);
 
         /**
          * Token is only null if no = is found.
@@ -39,9 +39,10 @@ char *parse_path_string(char *envp[])
         /**
          * If the token is == "PATH" then we've found the correct K-V pair in the env list.
          */
-        if (strcmp(token, ENV_PATH_KEY) == 0)
+        if (strcmp(token, env_key) == 0)
         {
-            path_value = strtok(NULL, ENV_PATH_DELIM);
+            path_value = strtok(NULL, ENV_DELIM);
+
             break;
         }
 
@@ -64,6 +65,7 @@ string_list *parse_path_bin_dirs(char *path_str)
     if (token == NULL)
     {
         fprintf(stderr, "error: unable to parse bin executable directory paths.\n");
+
         return NULL;
     }
 

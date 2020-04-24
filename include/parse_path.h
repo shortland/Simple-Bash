@@ -9,7 +9,7 @@
  * Look in this file's relative .c file for function definitions.
  */
 
-char *parse_path_string(char *envp[]);
+char *parse_path_string(char *envp[], const char *env_key);
 
 string_list *parse_path_bin_dirs(char *path_str);
 

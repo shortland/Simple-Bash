@@ -4,5 +4,7 @@
 char *COMMAND_EXIT = "exit";
 char *COMMAND_CD = "cd";
 char *COMMAND_PWD = "pwd";
+char *COMMAND_ECHO = "echo";
+char *COMMAND_JOBS = "jobs";
 
 #endif
