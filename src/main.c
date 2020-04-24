@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #include "debug.h"
 #include "parse_path.h"
@@ -11,14 +12,16 @@
 #include "executor.h"
 #include "command_return_list.h"
 #include "globals.h"
+#include "signals.h"
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char *prompt = "smash> ";
-    char *path_string = parse_path_string(envp, ENV_PATH_KEY);
+    /**
+     * Parses out all the environment variables for later ease of retrieval using parse_path_get_env()
+     */
+    parse_path_all_env_params(envp);
 
-    debug("the path string has value: %s\n", path_string);
-
+    char *path_string = parse_path_get_env(ENV_PATH_KEY);
     if (path_string == NULL)
     {
         fprintf(stderr, "error: unable to get path string. Is there one? - Check globals.h to configure.\n");
@@ -30,17 +33,36 @@ int main(int argc, char *argv[], char *envp[])
      * Parse directories that have binaries
      */
     string_list *bin_list = parse_path_bin_dirs(path_string);
-    // string_list_debug(bin_list);
-    // for (int i = 0; i < bin_list->size; i++)
-    // {
-    //     io_print_files_in_dir(bin_list->strings[i]);
-    // }
+
+    /**
+     * Initialize the jobs list
+     * -> Initializes a list which contains currently running job info.
+     * 
+     * Must call before hooking readline.
+     */
+    executor_init_execd();
+
+    /**
+     * Set sig hook function in readline
+     */
+    struct sigaction sc;
+    sc.sa_handler = signals_job_done;
+    sc.sa_flags = 0;
+    sigemptyset(&sc.sa_mask);
+
+    if (sigaction(SIGCHLD, &sc, NULL) == -1)
+    {
+        debug("unable to set SIGCHLD handler\n");
+        return -1;
+    }
+
+    readline_set_sig_hook(signals_readline_operator);
 
     /**
      * Read in a line of text
      */
     char *input_line;
-    while ((input_line = readline(prompt)) != NULL)
+    while ((input_line = readline(PROMPT)) != NULL)
     {
         debug("input read: '%s'\n", input_line);
 
@@ -59,7 +81,6 @@ int main(int argc, char *argv[], char *envp[])
         else if (executor_ret == COMMAND_RETURN_RETRY || executor_ret == COMMAND_RETURN_NOT_FOUND)
         {
             fprintf(stderr, "smash: command not found: %s\n", cmd->strings[0]);
-
             continue;
         }
         else if (executor_ret == COMMAND_RETURN_COMMENT)

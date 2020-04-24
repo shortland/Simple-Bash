@@ -5,7 +5,6 @@
 
 static int jobs;
 
-// pid
 typedef struct commander
 {
     int job_id;
@@ -27,7 +26,6 @@ typedef struct commander
     char *output_redirect;       // e.g.) '>someOutput'
     char *output_error_redirect; // e.g.) '2>somefile'
     char *input_redirect;        // e.g.) '<someInputFile'
-    // char **variables;      // e.g.) '$PATH' (technically only used with echo)
 } commander;
 
 string_list *parse_command_to_string_list(char *command);

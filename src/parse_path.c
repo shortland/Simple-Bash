@@ -1,24 +1,48 @@
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "parse_path.h"
 #include "debug.h"
 #include "globals.h"
 #include "string_list.h"
+#include "pointer_pointer_helper.h"
+
+static int LAST_RETURN = 0;
+
+int get_last_return_value()
+{
+    return LAST_RETURN;
+}
+
+void set_last_return_value(int code)
+{
+    LAST_RETURN = code;
+}
+
+void parse_path_debug_env_variables()
+{
+    debug("attempting to print out all env_variables.\n");
+
+    int i = 0;
+
+    while (env_variables[i] != NULL)
+    {
+        debug("ENV_VARIABLE - key: '%s'\n", env_variables[i]->key);
+        debug("ENV_VARIABLE - value: '%s'\n", env_variables[i]->value);
+        debug("---- / END PARSE_PATH_DEBUG_ENV_VARIABLES() / ----\n");
+
+        i++;
+    }
+
+    return;
+}
 
 /**
- * Parse out the path string from the array of environment variables.
- * 
- * @return char *string - representing the list of all directories where executable binaries exist. Typically delimited by ':'.
- * @return NULL - when no env path variable found - may need to configure globals.h for system. 
+ * Parse out all the environment variables, and set it in the static variable @see env_params
  */
-char *parse_path_string(char *envp[], const char *env_key)
+void parse_path_all_env_params(char *envp[])
 {
-    /**
-     * Split the envp variable by new line, then split each new line by "=" sign.
-     */
-
     int i = 0;
     char *token = NULL;
     char *path_value = NULL;
@@ -37,20 +61,103 @@ char *parse_path_string(char *envp[], const char *env_key)
         }
 
         /**
-         * If the token is == "PATH" then we've found the correct K-V pair in the env list.
+         * Resize env_variables to hold 1 more k-v pair pointer
          */
-        if (strcmp(token, env_key) == 0)
-        {
-            path_value = strtok(NULL, ENV_DELIM);
+        env_variables = realloc(env_variables, (i + 1) * sizeof(env_params **));
+        env_variables[i] = malloc(1 * sizeof(env_params *));
 
-            break;
+        /**
+         * Create space for the key and copy it over.
+         */
+        env_variables[i]->key = malloc(strlen(token) + 1);
+        memcpy(env_variables[i]->key, token, strlen(token));
+        env_variables[i]->key[strlen(token)] = NULL_CHAR;
+
+        /**
+         * Create space for the value and copy it over
+         */
+        path_value = strtok(NULL, ENV_DELIM);
+        env_variables[i]->value = malloc(strlen(path_value) + 1);
+        memcpy(env_variables[i]->value, path_value, strlen(path_value));
+        env_variables[i]->value[strlen(path_value)] = NULL_CHAR;
+
+        i++;
+    }
+
+    env_variables = realloc(env_variables, i * sizeof(env_params **));
+    env_variables[i - 1] = malloc(sizeof(NULL));
+    env_variables[i - 1] = NULL;
+
+    return;
+}
+
+/**
+ * Get and environment variables value from it's key.
+ * Or return NULL if key not found in env.
+ */
+char *parse_path_get_env(char *key)
+{
+    int i = 0;
+
+    while (env_variables[i] != NULL)
+    {
+        if (strcmp(env_variables[i]->key, key) == 0)
+        {
+            debug("found env variable for specified key.\n");
+
+            return strdup(env_variables[i]->value);
         }
 
         i++;
     }
 
-    return path_value;
+    return NULL;
 }
+
+// /**
+//  * Parse out the path string from the array of environment variables.
+//  *
+//  * @return char *string - representing the list of all directories where executable binaries exist. Typically delimited by ':'.
+//  * @return NULL - when no env path variable found - may need to configure globals.h for system.
+//  */
+// char *parse_path_string(char *envp[], const char *env_key)
+// {
+//     /**
+//      * Split the envp variable by new line, then split each new line by "=" sign.
+//      */
+
+//     int i = 0;
+//     char *token = NULL;
+//     char *path_value = NULL;
+
+//     while (envp[i] != NULL)
+//     {
+//         token = strtok(envp[i], ENV_DELIM);
+
+//         /**
+//          * Token is only null if no = is found.
+//          * No = is found when no valid key-value env variable set.
+//          */
+//         if (token == NULL)
+//         {
+//             break;
+//         }
+
+//         /**
+//          * If the token is == "PATH" then we've found the correct K-V pair in the env list.
+//          */
+//         if (strcmp(token, env_key) == 0)
+//         {
+//             path_value = strtok(NULL, ENV_DELIM);
+
+//             break;
+//         }
+
+//         i++;
+//     }
+
+//     return path_value;
+// }
 
 /**
  * Split the path variable contents by ':' to retrieve each of its individual directory paths.

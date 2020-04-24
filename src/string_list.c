@@ -83,7 +83,7 @@ void string_list_debug(string_list *list)
         debug("Index: %d\n", i);
         debug("V-Length: %lu\n", strlen(list->strings[i]));
         debug("Value: %s\n", list->strings[i]);
-        debug("---- ----\n");
+        debug("---- / END STRING_LIST_DEBUG() / ----\n");
     }
 
     return;

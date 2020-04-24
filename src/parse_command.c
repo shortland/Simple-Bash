@@ -6,6 +6,7 @@
 #include "string_list.h"
 #include "globals.h"
 #include "pointer_pointer_helper.h"
+#include "parse_path.h"
 
 string_list *parse_command_to_string_list(char *command)
 {
@@ -112,6 +113,7 @@ typedef struct bin_param
 {
     int num;
     char **params;
+    int exited;
 } bin_param;
 
 /**
@@ -122,6 +124,7 @@ bin_param *__get_binary_params(string_list *command)
 {
     bin_param *bp = malloc(sizeof(bin_param));
     bp->num = 0;
+    bp->exited = 0;
 
     if (command->size == 1)
     {
@@ -148,14 +151,36 @@ bin_param *__get_binary_params(string_list *command)
 
         if (i > 1)
         {
-            // debug("didn't make it1\n");
             bp->params = realloc(bp->params, (1 + i) * sizeof(char *));
-            // debug("didn't make it2\n");
         }
 
-        // debug("didn't make it3\n");
-        bp->params[i - 1] = malloc(strlen(command->strings[i]) + 1);
-        memcpy(bp->params[i - 1], command->strings[i], strlen(command->strings[i]) + 1);
+        /**
+         * Determine whether the command parameter is actually a variable we need to parse.
+         */
+        char *real_arg = command->strings[i];
+        if (command->strings[i][0] == VARIABLE_START_KEY)
+        {
+            if (strcmp(real_arg, LAST_RETURN_KEY) == 0)
+            {
+                debug("should replace last return key\n");
+                sprintf(real_arg, "%d", get_last_return_value());
+            }
+            else
+            {
+                debug("this parameter: '%s', is a variable\n", real_arg);
+                parse_path_debug_env_variables();
+
+                if ((real_arg = parse_path_get_env(strchr(command->strings[i], VARIABLE_START_KEY) + 1)) == NULL)
+                {
+                    real_arg = command->strings[i];
+                }
+
+                debug("this variable: '%s', is now a value\n", real_arg);
+            }
+        }
+
+        bp->params[i - 1] = malloc(strlen(real_arg) + 1);
+        memcpy(bp->params[i - 1], real_arg, strlen(real_arg) + 1);
     }
 
     bp->num = i - 1;
