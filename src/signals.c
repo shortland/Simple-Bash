@@ -24,7 +24,7 @@ void signals_job_done(int sig)
  */
 int signals_readline_operator()
 {
-    debug("waiting for signal readline operator; pid: '%d'\n", getpid());
+    // debug("waiting for signal readline operator; pid: '%d'\n", getpid());
 
     executor_jobs *current;
 
@@ -35,14 +35,13 @@ int signals_readline_operator()
     // recheck_pids:
     if (has_completed == 1)
     {
-        debug("FOUND COMPLETED\n");
         /** Set back to 0 so we stop looking for children unless more have spawned. */
         has_completed = 0;
 
         /** Get the head of the jobs list */
         current = executor_execd_head();
 
-        debug("the current is: '%p'\n", current);
+        debug2("the current is: '%p'\n", current);
         while (current->cmd != NULL)
         {
             debug("look for any pids that can be reaped.\n");
@@ -58,7 +57,8 @@ int signals_readline_operator()
 
             if (WIFEXITED(status))
             {
-                debug("Child %d terminated with exit status %d\n", wpid, WEXITSTATUS(status));
+                debug("ENDED: '%s'(ret=%d)\n", current->cmd->bin, WEXITSTATUS(status));
+                // debug("Child %d terminated with exit status %d\n", wpid, WEXITSTATUS(status));
 
                 // set the exit code of the prog.
                 set_last_return_value(WEXITSTATUS(status));
@@ -67,18 +67,18 @@ int signals_readline_operator()
 
                 if (status == 0)
                 {
-                    debug("child exited with status 0\n");
+                    debug2("child exited with status 0\n");
                     executor_pop_execd(current->cmd->job_id);
                 }
                 else
                 {
-                    debug("child exit not-ok: '%d'\n", WEXITSTATUS(status));
+                    debug2("child exit not-ok: '%d'\n", WEXITSTATUS(status));
                     executor_pop_execd(current->cmd->job_id);
                 }
             }
             else
             {
-                debug("error; child didn't have an exit status code.\n");
+                debug2("error; child didn't have an exit status code.\n");
             }
 
             if (current->next == NULL)

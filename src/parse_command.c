@@ -139,8 +139,8 @@ bin_param *__get_binary_params(string_list *command)
     {
         if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL || strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL || strcmp(command->strings[i], BACKGROUND_KEY) == 0)
         {
-            debug("found ending key... no longer looking for parameters\n");
-            debug("note: this assumes that an input/output redirect and background(&) would be at the end of the paramter list\n");
+            // debug("found ending key... no longer looking for parameters\n");
+            // debug("note: this assumes that an input/output redirect and background(&) would be at the end of the paramter list\n");
 
             bp->num = i - 1;
 
@@ -237,22 +237,22 @@ void parse_command_debug_commander(commander *cmd)
         return;
     }
 
-    debug("cmd; job_id: '%d'.\n", cmd->job_id);
-    debug("cmd; bgfg: '%d'. (-1 fg; 1 bg)\n", cmd->bgfg);
-    debug("cmd; started: '%d'. (-1 no, 1 yes)\n", cmd->started);
-    debug("cmd; finished: '%d'. (-1 no, 1 yes)\n", cmd->finished);
-    debug("cmd; running: '%d'. (-1 no, 1 yes)\n", cmd->running);
-    debug("cmd; exit_code: '%d'. (-1 default)\n", cmd->exit_code);
-    debug("cmd; raw_command: ...\n");
+    debug2("cmd; job_id: '%d'.\n", cmd->job_id);
+    debug2("cmd; bgfg: '%d'. (-1 fg; 1 bg)\n", cmd->bgfg);
+    debug2("cmd; started: '%d'. (-1 no, 1 yes)\n", cmd->started);
+    debug2("cmd; finished: '%d'. (-1 no, 1 yes)\n", cmd->finished);
+    debug2("cmd; running: '%d'. (-1 no, 1 yes)\n", cmd->running);
+    debug2("cmd; exit_code: '%d'. (-1 default)\n", cmd->exit_code);
+    debug2("cmd; raw_command: ...\n");
     string_list_debug(cmd->raw_command);
-    debug("cmd; bin_dir: '%s'\n", cmd->bin_dir);
-    debug("cmd; bin: '%s'\n", cmd->bin);
-    debug("cmd; num_bin_params: '%d'\n", cmd->num_bin_params);
-    debug("cmd; bin_params: ...\n");
+    debug2("cmd; bin_dir: '%s'\n", cmd->bin_dir);
+    debug2("cmd; bin: '%s'\n", cmd->bin);
+    debug2("cmd; num_bin_params: '%d'\n", cmd->num_bin_params);
+    debug2("cmd; bin_params: ...\n");
     pointer_pointer_debug(cmd->bin_params, cmd->num_bin_params);
-    debug("cmd; output_redirect: '%s'\n", cmd->output_redirect);
-    debug("cmd; output_error_redirect: '%s'\n", cmd->output_error_redirect);
-    debug("cmd; input_redirect: '%s'\n", cmd->input_redirect);
+    debug2("cmd; output_redirect: '%s'\n", cmd->output_redirect);
+    debug2("cmd; output_error_redirect: '%s'\n", cmd->output_error_redirect);
+    debug2("cmd; input_redirect: '%s'\n", cmd->input_redirect);
 
     return;
 }

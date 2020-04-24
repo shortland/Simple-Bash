@@ -13,7 +13,7 @@ void pointer_pointer_debug(char **array, int length)
 
     for (int i = 0; i < length; i++)
     {
-        debug("pp: '%s'\n", array[i]);
+        debug2("pp: '%s'\n", array[i]);
     }
 }
 

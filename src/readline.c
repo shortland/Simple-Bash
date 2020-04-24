@@ -16,7 +16,7 @@ void readline_set_sig_hook(readline_sig_hook hook)
     return;
 }
 
-char *readline(char *prompt)
+char *readline(char *prompt, char *filename)
 {
     int size = 32;
     char *buf = malloc(size);

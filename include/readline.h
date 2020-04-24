@@ -5,6 +5,6 @@ typedef int readline_sig_hook(void);
 
 void readline_set_sig_hook(readline_sig_hook hook);
 
-char *readline(char *prompt);
+char *readline(char *prompt, char *filename);
 
 #endif

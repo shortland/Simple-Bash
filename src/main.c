@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "parse_path.h"
@@ -16,6 +17,39 @@
 
 int main(int argc, char *argv[], char *envp[])
 {
+    /** Determine whether batchmode was initialized. */
+    char *filename = NULL;
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], DEBUG_FLAG) == 0)
+        {
+            debug_enable();
+            debug("debugging output enabled\n");
+            continue;
+        }
+
+        if (access(argv[i], F_OK) != -1)
+        {
+            debug("attempting to execute shell file.\n");
+
+            if (access(argv[i], X_OK) == 0)
+            {
+                debug("can execute the file contents\n");
+                filename = argv[i];
+            }
+            else
+            {
+                fprintf(stderr, "smash: error - the file '%s' is not executable\n", argv[i]);
+                return 1;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "smash: error - the file '%s' does not exist\n", argv[i]);
+            return 1;
+        }
+    }
+
     /**
      * Parses out all the environment variables for later ease of retrieval using parse_path_get_env()
      */
@@ -25,8 +59,7 @@ int main(int argc, char *argv[], char *envp[])
     if (path_string == NULL)
     {
         fprintf(stderr, "error: unable to get path string. Is there one? - Check globals.h to configure.\n");
-
-        return -1;
+        return 1;
     }
 
     /**
@@ -62,7 +95,7 @@ int main(int argc, char *argv[], char *envp[])
      * Read in a line of text
      */
     char *input_line;
-    while ((input_line = readline(PROMPT)) != NULL)
+    while ((input_line = readline(PROMPT, filename)) != NULL)
     {
         debug("input read: '%s'\n", input_line);
 
@@ -71,12 +104,12 @@ int main(int argc, char *argv[], char *envp[])
         {
             continue;
         }
-        // string_list_debug(cmd);
+        string_list_debug(cmd);
 
         int executor_ret = executor_exec_command(cmd, bin_list);
         if (executor_ret == COMMAND_RETURN_EXIT)
         {
-            return -1;
+            return 1;
         }
         else if (executor_ret == COMMAND_RETURN_RETRY)
         {

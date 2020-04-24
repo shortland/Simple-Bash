@@ -16,5 +16,6 @@ static const char VARIABLE_START_KEY = '$';
 static const char NULL_CHAR = '\0';
 static char *LAST_RETURN_KEY = "$?";
 static char *PROMPT = "smash> ";
+static char *DEBUG_FLAG = "-d";
 
 #endif

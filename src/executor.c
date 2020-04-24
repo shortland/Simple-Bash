@@ -85,7 +85,7 @@ void executor_pop_execd(int job_id)
             if (current->prev == NULL)
             {
                 /** This is the head node (popping head) */
-                debug("found node at the head\n");
+                debug2("found node at the head\n");
                 current->next->prev = NULL;
                 execd_job_list = current->next;
                 free(current);
@@ -96,7 +96,7 @@ void executor_pop_execd(int job_id)
             if (current->next == NULL)
             {
                 /** This is the tail node */
-                debug("found node at the tail\n");
+                debug2("found node at the tail\n");
                 current->prev->next = NULL;
                 free(current);
 
@@ -106,7 +106,7 @@ void executor_pop_execd(int job_id)
             if (current->next != NULL && current->prev != NULL)
             {
                 /** This is a center node */
-                debug("found node at the center\n");
+                debug2("found node at the center\n");
                 current->prev->next = current->next;
                 current->next->prev = current->prev;
                 free(current);
@@ -187,6 +187,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command)
          * Execute the command & it's arguments
          */
         errno = 0;
+        debug("RUNNING: %s\n", full_command);
         if (execvp(full_command, command_args) == -1)
         {
             fprintf(stderr, "error: execvp failed to execute, errno: '%d'", errno);
@@ -346,18 +347,18 @@ int executor_exec_command(string_list *command, string_list *bin_list)
  */
 void executor_debug_execd()
 {
-    debug("DEBUG EXECUTOR EXECD JOBS LIST\n");
+    debug2("DEBUG EXECUTOR EXECD JOBS LIST\n");
 
     executor_jobs *current = execd_job_list;
 
     while (current->cmd != NULL)
     {
-        debug("CURRENT: '%p'\n", current);
-        debug("NEXT: '%p'\n", current->next);
-        debug("PREV: '%p'\n", current->prev);
-        debug("COMMANDER DEBUG: ...\n");
+        debug2("CURRENT: '%p'\n", current);
+        debug2("NEXT: '%p'\n", current->next);
+        debug2("PREV: '%p'\n", current->prev);
+        debug2("COMMANDER DEBUG: ...\n");
         parse_command_debug_commander(current->cmd);
-        debug("---- / END EXECUTOR_DEBUG_EXECD() /----\n");
+        debug2("---- / END EXECUTOR_DEBUG_EXECD() /----\n");
 
         if (current->next == NULL)
         {
