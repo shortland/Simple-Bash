@@ -15,10 +15,10 @@
 #include "command_list.h"
 #include "command_return_list.h"
 #include "parse_command.h"
+#include "pointer_pointer_helper.h"
 
-void executor_exec_bin_command(char *bin_dir, string_list *command)
+void executor_exec_bin_command(commander *cmd, string_list *command)
 {
-    int pipe_amt = 0;
     pid_t pid;
 
     if ((pid = fork()) == 0)
@@ -31,6 +31,46 @@ void executor_exec_bin_command(char *bin_dir, string_list *command)
             debug("unable to set the process group id\n");
 
             return;
+        }
+
+        /**
+         * Execute the command
+         */
+
+        // create the entire executable path, binary-dir + binary-name.
+        char *dest = malloc(strlen(cmd->bin_dir) + strlen(cmd->bin) + 1);
+        memcpy(dest, cmd->bin_dir, strlen(cmd->bin_dir));
+
+        // add a '/' between the binary-dir and binary-name
+        dest[strlen(cmd->bin_dir)] = '/';
+        dest[strlen(cmd->bin_dir) + 1] = 0;
+
+        // finally, concatenate
+        char *full_command = strcat(dest, cmd->bin);
+
+        // command argument prepping - put name of executable path as first argument
+        char **command_args = malloc(2 * sizeof(char **));
+        command_args[0] = malloc(strlen(full_command) + 1);
+        memcpy(command_args[0], full_command, strlen(full_command));
+
+        // more arguments to parse.
+        if (cmd->num_bin_params > 0)
+        {
+            // command_args = realloc(cmd->bin_params, (cmd->num_bin_params + 1) * sizeof(char *));
+            command_args = pointer_pointer_merge(command_args, 1, cmd->bin_params, cmd->num_bin_params);
+        }
+
+        // +2 b/c 1 for the initial array, and 1 more so that i can get to last index
+        command_args = realloc(command_args, (cmd->num_bin_params + 2) * sizeof(char **));
+        command_args[cmd->num_bin_params + 2] = malloc(sizeof(NULL));
+        command_args[cmd->num_bin_params + 2] = NULL;
+
+        // execute the command & its arguments
+        errno = 0;
+        if (execvp(full_command, command_args) == -1)
+        {
+            fprintf(stderr, "error: execvp failed to execute, errno: '%d'", errno);
+            exit(-1);
         }
     }
 
@@ -142,7 +182,7 @@ int executor_exec_command(string_list *command, string_list *bin_list)
          */
         parse_command_debug_commander(cmd);
 
-        executor_exec_bin_command(bin_dir, command);
+        executor_exec_bin_command(cmd, command);
 
         return COMMAND_RETURN_SUCCESS;
     }

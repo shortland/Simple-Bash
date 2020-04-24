@@ -140,6 +140,7 @@ bin_param *__get_binary_params(string_list *command)
             debug("note: this assumes that an input/output redirect and background(&) would be at the end of the paramter list\n");
 
             bp->num = i - 1;
+
             return bp;
         }
 
@@ -158,6 +159,7 @@ bin_param *__get_binary_params(string_list *command)
     }
 
     bp->num = i - 1;
+
     return bp;
 }
 
