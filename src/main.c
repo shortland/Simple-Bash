@@ -78,13 +78,23 @@ int main(int argc, char *argv[], char *envp[])
         {
             return -1;
         }
-        else if (executor_ret == COMMAND_RETURN_RETRY || executor_ret == COMMAND_RETURN_NOT_FOUND)
+        else if (executor_ret == COMMAND_RETURN_RETRY)
+        {
+            // error should be given by executor
+            continue;
+        }
+        else if (executor_ret == COMMAND_RETURN_NOT_FOUND)
         {
             fprintf(stderr, "smash: command not found: %s\n", cmd->strings[0]);
             continue;
         }
         else if (executor_ret == COMMAND_RETURN_COMMENT)
         {
+            continue;
+        }
+        else if (executor_ret == COMMAND_RETURN_INTERNAL_CMD)
+        {
+            debug("finished executing internal command\n");
             continue;
         }
     }

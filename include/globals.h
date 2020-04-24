@@ -1,7 +1,11 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#define MAX_PATH 128
+
+static char *ROOT_PATH = "/";
 static char *ENV_PATH_KEY = "PATH";
+static char *ENV_HOME_KEY = "HOME";
 static const char *ENV_DELIM = "=";
 static const char *BIN_EXEC_DELIM = ":";
 static const char *BACKGROUND_KEY = "&";

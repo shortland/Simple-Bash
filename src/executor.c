@@ -5,9 +5,9 @@
 #include <signal.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <sys/wait.h>
 
 #include "executor.h"
@@ -17,6 +17,7 @@
 #include "parse_command.h"
 #include "pointer_pointer_helper.h"
 #include "parse_path.h"
+#include "globals.h"
 
 static executor_jobs *execd_job_list;
 
@@ -264,27 +265,55 @@ int executor_exec_command(string_list *command, string_list *bin_list)
      * Then if still not found - try to find the command in one of the /bin/ dirs.
      */
 
-    // exit the prog.
+    /** $ exit - exit the prog. */
     if (strcmp(command->strings[0], COMMAND_EXIT) == 0)
     {
         return COMMAND_RETURN_EXIT;
     }
 
-    // // change dir using chdir()
-    // if (strcmp(command->strings[0], COMMAND_CD) == 0)
-    // {
-    //     // TODO:
-    //     return COMMAND_RETURN_EXIT;
-    // }
+    /** $ pwd - get the cwd of the shell, via getcwd() */
+    if (strcmp(command->strings[0], COMMAND_PWD) == 0)
+    {
+        char current_path[MAX_PATH];
+        if (getcwd(current_path, MAX_PATH) == NULL)
+        {
+            fprintf(stderr, "error: unable to get current path\n");
+            set_last_return_value(COMMAND_RETURN_RETRY);
+            return COMMAND_RETURN_RETRY;
+        }
 
-    // // show current dir using getcwd()
-    // if (strcmp(command->strings[0], COMMAND_PWD) == 0)
-    // {
-    //     // TODO:
-    //     return COMMAND_RETURN_EXIT;
-    // }
+        fprintf(stdout, "%s\n", current_path);
 
-    // Since not matching our commands - search in bin dirs.
+        return COMMAND_RETURN_INTERNAL_CMD;
+    }
+
+    /** $ cd - change dir using chdir() */
+    if (strcmp(command->strings[0], COMMAND_CD) == 0)
+    {
+        char *chdir_to;
+        if ((chdir_to = parse_path_get_env(ENV_HOME_KEY)) == NULL)
+        {
+            chdir_to = ROOT_PATH;
+        }
+
+        /** If there is an argument present, then try to cd to that dir instead of default home dir above */
+        if (command->size > 1)
+        {
+            chdir_to = command->strings[1];
+        }
+
+        /** Attempt to change dir */
+        if (chdir(chdir_to) != 0)
+        {
+            fprintf(stderr, "error: unable to change directory to '%s'\n", chdir_to);
+            set_last_return_value(COMMAND_RETURN_RETRY);
+            return COMMAND_RETURN_RETRY;
+        }
+
+        return COMMAND_RETURN_INTERNAL_CMD;
+    }
+
+    /** Since not matching any builtin commands - search in bin dirs. */
     char *bin_dir;
     if ((bin_dir = executor_find_binary(command->strings[0], bin_list)) == NULL)
     {
