@@ -1,4 +1,4 @@
-# Smash
+# SMash
 
 A basic implementation of Bash.
 
