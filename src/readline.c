@@ -16,9 +16,9 @@ void readline_set_sig_hook(readline_sig_hook hook)
     return;
 }
 
-char *readline(char *prompt, char *filename)
+char *readline(char *prompt, int fd)
 {
-    int size = 32;
+    int size = 64;
     char *buf = malloc(size);
 
     if (buf == NULL)
@@ -55,10 +55,20 @@ char *readline(char *prompt, char *filename)
          */
         fd_set fd_in;
         FD_ZERO(&fd_in);
-        FD_SET(0, &fd_in);
+        FD_SET(fd, &fd_in);
 
-        int ready_desc = pselect(1, &fd_in, NULL, NULL, NULL, &out_mask);
-        int check_err = errno;
+        int ready_desc;
+        int check_err;
+
+        if (fd == fileno(stdin))
+        {
+            ready_desc = pselect(1, &fd_in, NULL, NULL, NULL, &out_mask);
+        }
+        else
+        {
+            ready_desc = 1;
+        }
+        check_err = errno;
 
         // unmask
         sigprocmask(SIG_SETMASK, &out_mask, NULL);
@@ -91,7 +101,7 @@ char *readline(char *prompt, char *filename)
         /**
          * Read in 1 byte at a time.
          */
-        if (read(0, &c, 1) != 1)
+        if (read(fd, &c, 1) != 1)
         {
             if (bp - buf > 0)
             {
@@ -119,7 +129,7 @@ char *readline(char *prompt, char *filename)
 
             if (new_buf == NULL)
             {
-                fprintf(stderr, "realloc failed");
+                fprintf(stderr, "error: unable to realloc for input buffer\n");
                 break;
             }
             else

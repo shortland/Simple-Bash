@@ -14,17 +14,29 @@
 #include "command_return_list.h"
 #include "globals.h"
 #include "signals.h"
+#include "interactive_mode.h"
+#include "batch_mode.h"
 
 int main(int argc, char *argv[], char *envp[])
 {
     /** Determine whether batchmode was initialized. */
     char *filename = NULL;
+    int d = -1;
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], DEBUG_FLAG) == 0)
         {
+            d = 0;
+
             debug_enable();
             debug("debugging output enabled\n");
+
+            if (filename != NULL)
+            {
+                /** already parsed anything it can - begin to execute file line by line */
+                break;
+            }
+
             continue;
         }
 
@@ -36,10 +48,15 @@ int main(int argc, char *argv[], char *envp[])
             {
                 debug("can execute the file contents\n");
                 filename = argv[i];
+                if (d == 0)
+                {
+                    /** already parsed anything it can - begin to execute file line by line. */
+                    break;
+                }
             }
             else
             {
-                fprintf(stderr, "smash: error - the file '%s' is not executable\n", argv[i]);
+                fprintf(stderr, "smash: error - the file '%s' is not executable; tip: $ chmod +x %s\n", argv[i], argv[i]);
                 return 1;
             }
         }
@@ -85,52 +102,21 @@ int main(int argc, char *argv[], char *envp[])
 
     if (sigaction(SIGCHLD, &sc, NULL) == -1)
     {
-        debug("unable to set SIGCHLD handler\n");
-        return -1;
+        fprintf(stderr, "error: unable to set SIGCHLD handler for finding finished jobs\n");
+        return 1;
     }
 
     readline_set_sig_hook(signals_readline_operator);
 
     /**
-     * Read in a line of text
+     * Run interactive mode if no file was given as arg.
      */
-    char *input_line;
-    while ((input_line = readline(PROMPT, filename)) != NULL)
+    if (filename == NULL)
     {
-        debug("input read: '%s'\n", input_line);
-
-        string_list *cmd = parse_command_to_string_list(strdup(input_line));
-        if (cmd == NULL)
-        {
-            continue;
-        }
-        string_list_debug(cmd);
-
-        int executor_ret = executor_exec_command(cmd, bin_list);
-        if (executor_ret == COMMAND_RETURN_EXIT)
-        {
-            return 1;
-        }
-        else if (executor_ret == COMMAND_RETURN_RETRY)
-        {
-            // error should be given by executor
-            continue;
-        }
-        else if (executor_ret == COMMAND_RETURN_NOT_FOUND)
-        {
-            fprintf(stderr, "smash: command not found: %s\n", cmd->strings[0]);
-            continue;
-        }
-        else if (executor_ret == COMMAND_RETURN_COMMENT)
-        {
-            continue;
-        }
-        else if (executor_ret == COMMAND_RETURN_INTERNAL_CMD)
-        {
-            debug("finished executing internal command\n");
-            continue;
-        }
+        debug("interactive mode enabled\n");
+        return interactive_mode_run(argc, argv, bin_list);
     }
 
-    return 0;
+    debug("batch (non-interactive) mode enabled\n");
+    return batch_mode_run(filename, bin_list);
 }

@@ -17,7 +17,7 @@ int debug(const char *str, ...)
     va_list arg;
 
     va_start(arg, str);
-    fprintf(stderr, "\033[1;31m");
+    fprintf(stderr, "\033[1;31mDEBUG: ");
     num = vfprintf(stderr, str, arg);
     fprintf(stderr, "\033[0m");
     va_end(arg);
