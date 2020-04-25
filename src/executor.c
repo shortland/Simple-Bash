@@ -184,6 +184,98 @@ void executor_exec_bin_command(commander *cmd, string_list *command)
         pointer_pointer_debug(command_args, cmd->num_bin_params + 2);
 
         /**
+         * Change input fd
+         */
+        char *input_path = cmd->input_redirect;
+        int fd_in = -1;
+        if (input_path != NULL)
+        {
+            debug("getting stdin input from a file: '%s'\n", input_path);
+
+            if ((fd_in = open(input_path, O_RDONLY)) == -1)
+            {
+                fprintf(stderr, "error: unable to open input file\n");
+                exit(errno);
+            }
+        }
+
+        /**
+         * The final file to output stdout data to;
+         * if it's not the last command, then should pipe data to next process...
+         */
+        char *output_path = cmd->output_redirect;
+        int fd_out = -1;
+        if (output_path != NULL)
+        {
+            debug("placing stdout output to file: '%s'\n", output_path);
+
+            if ((fd_out = open(output_path, O_WRONLY | O_TRUNC | O_CREAT, 00777)) == -1)
+            {
+                fprintf(stderr, "error: unable to open stdout output file\n");
+                exit(errno);
+            }
+        }
+
+        /**
+         * The final file to output stderr data to;
+         * if it's not the last command, then should pipe data to next process...
+         */
+        char *output_err_path = cmd->output_error_redirect;
+        int fd_err_out = -1;
+        if (output_err_path != NULL)
+        {
+            debug("placing stderr output to file: '%s'\n", output_err_path);
+
+            if ((fd_err_out = open(output_err_path, O_WRONLY | O_TRUNC | O_CREAT, 00777)) == -1)
+            {
+                fprintf(stderr, "error: unable to open stderr output file\n");
+                exit(errno);
+            }
+        }
+
+        /**
+         * Now replace stdin with fd_in if necessary
+         */
+        if (fd_in != -1)
+        {
+            if (dup2(fd_in, fileno(stdin)) == -1)
+            {
+                fprintf(stderr, "error: unable to replace infile with fd.\n");
+                exit(errno);
+            }
+
+            close(fd_in);
+        }
+
+        /**
+         * Replace stdout with fd_out if necessary
+         */
+        if (fd_out != -1)
+        {
+            if (dup2(fd_out, fileno(stdout)) == -1)
+            {
+                fprintf(stderr, "error: unable to replace outfile with fd.");
+                exit(errno);
+            }
+
+            close(fd_out);
+        }
+
+        /**
+         * Replace stdout with fd_out if necessary
+         */
+        if (fd_err_out != -1)
+        {
+            if (dup2(fd_err_out, fileno(stderr)) == -1)
+            {
+                fprintf(stderr, "error: unable to replace outerr with fd.");
+                exit(errno);
+            }
+
+            close(fd_err_out);
+        }
+
+        /**
          * Execute the command & it's arguments
          */
         errno = 0;
