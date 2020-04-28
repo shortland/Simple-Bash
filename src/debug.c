@@ -16,6 +16,11 @@ int debug(const char *str, ...)
     int num;
     va_list arg;
 
+    if (debug_on == 0)
+    {
+        return -1;
+    }
+
     va_start(arg, str);
     fprintf(stderr, "\033[1;31mDEBUG: ");
     num = vfprintf(stderr, str, arg);
