@@ -1,33 +1,21 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "parse_path.h"
-#include "debug.h"
-#include "globals.h"
-#include "string_list.h"
-#include "pointer_pointer_helper.h"
 
 static int LAST_RETURN = 0;
 
-int get_last_return_value()
-{
+int get_last_return_value() {
     return LAST_RETURN;
 }
 
-void set_last_return_value(int code)
-{
+void set_last_return_value(int code) {
     LAST_RETURN = code;
 }
 
-void parse_path_debug_env_variables()
-{
+void parse_path_debug_env_variables() {
     debug2("attempting to print out all env_variables.\n");
 
     int i = 0;
 
-    while (env_variables[i] != NULL)
-    {
+    while (env_variables[i] != NULL) {
         debug2("ENV_VARIABLE - key: '%s'\n", env_variables[i]->key);
         debug2("ENV_VARIABLE - value: '%s'\n", env_variables[i]->value);
         debug2("---- / END PARSE_PATH_DEBUG_ENV_VARIABLES() / ----\n");
@@ -41,22 +29,19 @@ void parse_path_debug_env_variables()
 /**
  * Parse out all the environment variables, and set it in the static variable @see env_params
  */
-void parse_path_all_env_params(char *envp[])
-{
+void parse_path_all_env_params(char *envp[]) {
     int i = 0;
     char *token = NULL;
     char *path_value = NULL;
 
-    while (envp[i] != NULL)
-    {
+    while (envp[i] != NULL) {
         token = strtok(envp[i], ENV_DELIM);
 
         /**
          * Token is only null if no = is found.
          * No = is found when no valid key-value env variable set.
          */
-        if (token == NULL)
-        {
+        if (token == NULL) {
             break;
         }
 
@@ -95,14 +80,11 @@ void parse_path_all_env_params(char *envp[])
  * Get and environment variables value from it's key.
  * Or return NULL if key not found in env.
  */
-char *parse_path_get_env(char *key)
-{
+char *parse_path_get_env(char *key) {
     int i = 0;
 
-    while (env_variables[i] != NULL)
-    {
-        if (strcmp(env_variables[i]->key, key) == 0)
-        {
+    while (env_variables[i] != NULL) {
+        if (strcmp(env_variables[i]->key, key) == 0) {
             debug("found env variable for specified key.\n");
 
             return strdup(env_variables[i]->value);
@@ -119,13 +101,11 @@ char *parse_path_get_env(char *key)
  * 
  * @return char **array - array of strings - each representing the path to a bin executable dir.
  */
-string_list *parse_path_bin_dirs(char *path_str)
-{
+string_list *parse_path_bin_dirs(char *path_str) {
     char *token = NULL;
     token = strtok(path_str, BIN_EXEC_DELIM);
 
-    if (token == NULL)
-    {
+    if (token == NULL) {
         fprintf(stderr, "error: unable to parse bin executable directory paths.\n");
 
         return NULL;
@@ -133,12 +113,10 @@ string_list *parse_path_bin_dirs(char *path_str)
 
     string_list *bin_list = string_list_from(token);
 
-    while (token != NULL)
-    {
+    while (token != NULL) {
         debug("the token is %s\n", token);
 
-        if ((token = strtok(NULL, BIN_EXEC_DELIM)) == NULL)
-        {
+        if ((token = strtok(NULL, BIN_EXEC_DELIM)) == NULL) {
             break;
         }
 

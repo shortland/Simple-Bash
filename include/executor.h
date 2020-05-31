@@ -1,11 +1,27 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
-#include "string_list.h"
-#include "parse_command.h"
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-typedef struct executor_jobs
-{
+#include "command_return_list.h"
+#include "debug.h"
+#include "globals.h"
+#include "parse_command.h"
+#include "parse_path.h"
+#include "pointer_pointer_helper.h"
+#include "string_list.h"
+
+typedef struct executor_jobs {
     commander *cmd;
     struct executor_jobs *next;
     struct executor_jobs *prev;

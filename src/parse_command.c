@@ -1,17 +1,7 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "parse_command.h"
-#include "debug.h"
-#include "string_list.h"
-#include "globals.h"
-#include "pointer_pointer_helper.h"
-#include "parse_path.h"
 
-string_list *parse_command_to_string_list(char *command)
-{
-    if (command == NULL)
-    {
+string_list *parse_command_to_string_list(char *command) {
+    if (command == NULL) {
         return NULL;
     }
 
@@ -26,12 +16,9 @@ string_list *parse_command_to_string_list(char *command)
  * -1 if it doesn't
  * 1 if it does
  */
-int __has_bg_flag(string_list *command)
-{
-    for (int i = 0; i < command->size; i++)
-    {
-        if (strcmp(command->strings[i], BACKGROUND_KEY) == 0)
-        {
+int __has_bg_flag(string_list *command) {
+    for (int i = 0; i < command->size; i++) {
+        if (strcmp(command->strings[i], BACKGROUND_KEY) == 0) {
             return 1;
         }
     }
@@ -44,13 +31,10 @@ int __has_bg_flag(string_list *command)
  * TODO: get jsut the file name and remove the arrow
  * @returns paramters 
  */
-char *__get_output_redirect(string_list *command)
-{
+char *__get_output_redirect(string_list *command) {
     char *pos;
-    for (int i = 0; i < command->size; i++)
-    {
-        if (strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL && strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) == NULL)
-        {
+    for (int i = 0; i < command->size; i++) {
+        if (strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL && strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) == NULL) {
             debug("found output redirect key");
 
             return strstr(command->strings[i], OUTPUT_REDIRECT_KEY) + 1;
@@ -65,12 +49,9 @@ char *__get_output_redirect(string_list *command)
  * TODO: get jsut the file name and remove the arrow
  * @returns paramters 
  */
-char *__get_output_error_redirect(string_list *command)
-{
-    for (int i = 0; i < command->size; i++)
-    {
-        if (strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) != NULL)
-        {
+char *__get_output_error_redirect(string_list *command) {
+    for (int i = 0; i < command->size; i++) {
+        if (strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) != NULL) {
             debug("found output redirect key");
 
             return strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) + 2;
@@ -85,12 +66,9 @@ char *__get_output_error_redirect(string_list *command)
  * TODO: get just the file name and remove the arrow
  * @returns paramters 
  */
-char *__get_input_redirect(string_list *command)
-{
-    for (int i = 0; i < command->size; i++)
-    {
-        if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL)
-        {
+char *__get_input_redirect(string_list *command) {
+    for (int i = 0; i < command->size; i++) {
+        if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL) {
             debug("found input redirect key");
 
             return strstr(command->strings[i], INPUT_REDIRECT_KEY) + 1;
@@ -104,13 +82,11 @@ char *__get_input_redirect(string_list *command)
  * Get the command (first parameter - at least currently) of the string list.
  * @returns binary executable (command) string value
  */
-char *__get_binary_name(string_list *command)
-{
+char *__get_binary_name(string_list *command) {
     return strdup(command->strings[0]);
 }
 
-typedef struct bin_param
-{
+typedef struct bin_param {
     int num;
     char **params;
     int exited;
@@ -120,14 +96,12 @@ typedef struct bin_param
  * Get the command's parameters - basically don't include the binary name (first param)
  * and ignore input and output redirection params and the '&' bg key
  */
-bin_param *__get_binary_params(string_list *command)
-{
+bin_param *__get_binary_params(string_list *command) {
     bin_param *bp = malloc(sizeof(bin_param));
     bp->num = 0;
     bp->exited = 0;
 
-    if (command->size == 1)
-    {
+    if (command->size == 1) {
         return bp;
     }
 
@@ -135,10 +109,8 @@ bin_param *__get_binary_params(string_list *command)
     bp->params = malloc(1 * sizeof(char *));
 
     int i;
-    for (i = 1; i < command->size; i++)
-    {
-        if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL || strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL || strcmp(command->strings[i], BACKGROUND_KEY) == 0)
-        {
+    for (i = 1; i < command->size; i++) {
+        if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL || strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL || strcmp(command->strings[i], BACKGROUND_KEY) == 0) {
             // debug("found ending key... no longer looking for parameters\n");
             // debug("note: this assumes that an input/output redirect and background(&) would be at the end of the paramter list\n");
 
@@ -149,8 +121,7 @@ bin_param *__get_binary_params(string_list *command)
 
         debug("found a valid parameter of: '%s'\n", command->strings[i]);
 
-        if (i > 1)
-        {
+        if (i > 1) {
             bp->params = realloc(bp->params, (1 + i) * sizeof(char *));
         }
 
@@ -158,20 +129,15 @@ bin_param *__get_binary_params(string_list *command)
          * Determine whether the command parameter is actually a variable we need to parse.
          */
         char *real_arg = command->strings[i];
-        if (command->strings[i][0] == VARIABLE_START_KEY)
-        {
-            if (strcmp(real_arg, LAST_RETURN_KEY) == 0)
-            {
+        if (command->strings[i][0] == VARIABLE_START_KEY) {
+            if (strcmp(real_arg, LAST_RETURN_KEY) == 0) {
                 debug("should replace last return key\n");
                 sprintf(real_arg, "%d", get_last_return_value());
-            }
-            else
-            {
+            } else {
                 debug("this parameter: '%s', is a variable\n", real_arg);
                 parse_path_debug_env_variables();
 
-                if ((real_arg = parse_path_get_env(strchr(command->strings[i], VARIABLE_START_KEY) + 1)) == NULL)
-                {
+                if ((real_arg = parse_path_get_env(strchr(command->strings[i], VARIABLE_START_KEY) + 1)) == NULL) {
                     real_arg = command->strings[i];
                 }
 
@@ -188,10 +154,8 @@ bin_param *__get_binary_params(string_list *command)
     return bp;
 }
 
-commander *parse_command_from_string_list(string_list *command)
-{
-    if (command == NULL)
-    {
+commander *parse_command_from_string_list(string_list *command) {
+    if (command == NULL) {
         return NULL;
     }
 
@@ -202,21 +166,18 @@ commander *parse_command_from_string_list(string_list *command)
     cmd->started = -1;
     cmd->finished = -1;
     cmd->running = -1;
-    cmd->exit_code = -1; // set it later if finished == 1 set exit code. or get it only when finished == 1 too.
+    cmd->exit_code = -1;  // set it later if finished == 1 set exit code. or get it only when finished == 1 too.
     cmd->raw_command = malloc(sizeof(string_list));
     memcpy(cmd->raw_command, command, sizeof(string_list));
 
-    cmd->bin_dir = NULL; // set in executor
+    cmd->bin_dir = NULL;  // set in executor
     cmd->bin = __get_binary_name(command);
 
     bin_param *param = __get_binary_params(command);
-    if (param->num == 0)
-    {
+    if (param->num == 0) {
         // cmd->bin_params = ;
         cmd->num_bin_params = 0;
-    }
-    else
-    {
+    } else {
         cmd->bin_params = param->params;
         cmd->num_bin_params = param->num;
     }
@@ -228,10 +189,8 @@ commander *parse_command_from_string_list(string_list *command)
     return cmd;
 }
 
-void parse_command_debug_commander(commander *cmd)
-{
-    if (cmd == NULL)
-    {
+void parse_command_debug_commander(commander *cmd) {
+    if (cmd == NULL) {
         debug("commander was null.\n");
 
         return;

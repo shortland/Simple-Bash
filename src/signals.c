@@ -1,18 +1,9 @@
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "signals.h"
-#include "debug.h"
-#include "executor.h"
-#include "parse_path.h"
 
 /**
  * Handler for when a job finishes.
  */
-void signals_job_done(int sig)
-{
+void signals_job_done(int sig) {
     has_completed = 1;
 
     debug("a job appears to have finished\n");
@@ -22,8 +13,7 @@ void signals_job_done(int sig)
 /**
  * Check the jobs list for any jobs that need to be reaped.
  */
-int signals_readline_operator()
-{
+int signals_readline_operator() {
     // debug("waiting for signal readline operator; pid: '%d'\n", getpid());
 
     executor_jobs *current;
@@ -33,8 +23,7 @@ int signals_readline_operator()
      * a status saying no more children.
      */
     // recheck_pids:
-    if (has_completed == 1)
-    {
+    if (has_completed == 1) {
         /** Set back to 0 so we stop looking for children unless more have spawned. */
         has_completed = 0;
 
@@ -42,21 +31,18 @@ int signals_readline_operator()
         current = executor_execd_head();
 
         debug2("the current is: '%p'\n", current);
-        while (current->cmd != NULL)
-        {
+        while (current->cmd != NULL) {
             debug("look for any pids that can be reaped.\n");
 
             int status;
             pid_t wpid = waitpid(current->cmd->pid, &status, WNOHANG);
 
-            if (wpid <= 0)
-            {
+            if (wpid <= 0) {
                 debug("no more pids to wait for.\n");
                 // goto recheck_pids;
             }
 
-            if (WIFEXITED(status))
-            {
+            if (WIFEXITED(status)) {
                 debug("ENDED: '%s'(ret=%d)\n", current->cmd->bin, WEXITSTATUS(status));
                 // debug("Child %d terminated with exit status %d\n", wpid, WEXITSTATUS(status));
 
@@ -65,24 +51,18 @@ int signals_readline_operator()
                 current->cmd->exit_code = WEXITSTATUS(status);
                 current->cmd->finished = 1;
 
-                if (status == 0)
-                {
+                if (status == 0) {
                     debug2("child exited with status 0\n");
                     executor_pop_execd(current->cmd->job_id);
-                }
-                else
-                {
+                } else {
                     debug2("child exit not-ok: '%d'\n", WEXITSTATUS(status));
                     executor_pop_execd(current->cmd->job_id);
                 }
-            }
-            else
-            {
+            } else {
                 debug2("error; child didn't have an exit status code.\n");
             }
 
-            if (current->next == NULL)
-            {
+            if (current->next == NULL) {
                 break;
             }
 

@@ -1,12 +1,13 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef DEBUG
 #define debug2(S, ...)                                                    \
-    do                                                                    \
-    {                                                                     \
+    do {                                                                  \
         fprintf(stderr, "\033[1;33mDEBUG: %s:%s:%d \033[0m " S, __FILE__, \
                 __extension__ __FUNCTION__, __LINE__, ##__VA_ARGS__);     \
     } while (0)

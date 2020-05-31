@@ -1,6 +1,13 @@
 #ifndef PARSE_PATH_H
 #define PARSE_PATH_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "debug.h"
+#include "globals.h"
+#include "pointer_pointer_helper.h"
 #include "string_list.h"
 
 /**
@@ -9,16 +16,12 @@
  * Look in this file's relative .c file for function definitions.
  */
 
-typedef struct env_params
-{
+typedef struct env_params {
     char *key;
     char *value;
 } env_params;
 
 static env_params **env_variables;
-
-// deprecated in favor of 'parse_path_get_env()'
-// char *parse_path_string(char *envp[], const char *env_key);
 
 string_list *parse_path_bin_dirs(char *path_str);
 

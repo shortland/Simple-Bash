@@ -1,23 +1,16 @@
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-
 #include "debug.h"
 
 static int debug_on = 0;
 
-void debug_enable()
-{
+void debug_enable() {
     debug_on = 1;
 }
 
-int debug(const char *str, ...)
-{
+int debug(const char *str, ...) {
     int num;
     va_list arg;
 
-    if (debug_on == 0)
-    {
+    if (debug_on == 0) {
         return -1;
     }
 

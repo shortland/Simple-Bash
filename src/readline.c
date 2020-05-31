@@ -1,28 +1,17 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <errno.h>
-#include <unistd.h>
-
 #include "readline.h"
-#include "debug.h"
-#include "signals.h"
 
 static readline_sig_hook *readline_hook;
 
-void readline_set_sig_hook(readline_sig_hook hook)
-{
+void readline_set_sig_hook(readline_sig_hook hook) {
     readline_hook = hook;
     return;
 }
 
-char *readline(char *prompt, int fd)
-{
+char *readline(char *prompt, int fd) {
     int size = 64;
     char *buf = malloc(size);
 
-    if (buf == NULL)
-    {
+    if (buf == NULL) {
         fprintf(stderr, "error: unable to malloc space for readline buffer\n");
         return NULL;
     }
@@ -33,8 +22,7 @@ char *readline(char *prompt, int fd)
     fprintf(stdout, "%s", prompt);
     fflush(stdout);
 
-    while (1)
-    {
+    while (1) {
         /**
          * Mask signal bits
          */
@@ -45,8 +33,7 @@ char *readline(char *prompt, int fd)
         /**
          * Call the hook
          */
-        if (readline_hook != NULL)
-        {
+        if (readline_hook != NULL) {
             readline_hook();
         }
 
@@ -60,39 +47,29 @@ char *readline(char *prompt, int fd)
         int ready_desc;
         int check_err;
 
-        if (fd == fileno(stdin))
-        {
+        if (fd == fileno(stdin)) {
             ready_desc = pselect(1, &fd_in, NULL, NULL, NULL, &out_mask);
-        }
-        else
-        {
+        } else {
             ready_desc = 1;
         }
         check_err = errno;
 
-        // unmask
+        /** unmask */
         sigprocmask(SIG_SETMASK, &out_mask, NULL);
 
         /**
          * Check if there are no ready file descriptors; s.t. read would probably fail.
          */
-        if (ready_desc < 0)
-        {
-            if (check_err == EINTR)
-            {
+        if (ready_desc < 0) {
+            if (check_err == EINTR) {
                 continue;
             }
 
             return NULL;
-        }
-        else if (ready_desc == 0)
-        {
-            if (bp - buf > 0)
-            {
+        } else if (ready_desc == 0) {
+            if (bp - buf > 0) {
                 break;
-            }
-            else
-            {
+            } else {
                 free(buf);
                 return NULL;
             }
@@ -101,14 +78,10 @@ char *readline(char *prompt, int fd)
         /**
          * Read in 1 byte at a time.
          */
-        if (read(fd, &c, 1) != 1)
-        {
-            if (bp - buf > 0)
-            {
+        if (read(fd, &c, 1) != 1) {
+            if (bp - buf > 0) {
                 break;
-            }
-            else
-            {
+            } else {
                 free(buf);
                 return NULL;
             }
@@ -117,23 +90,18 @@ char *readline(char *prompt, int fd)
         /**
          * User pressed enter.
          */
-        if (c == '\n')
-        {
+        if (c == '\n') {
             break;
         }
 
-        if (bp - buf >= size - 1)
-        {
+        if (bp - buf >= size - 1) {
             size <<= 1;
             char *new_buf = realloc(buf, size);
 
-            if (new_buf == NULL)
-            {
+            if (new_buf == NULL) {
                 fprintf(stderr, "error: unable to realloc for input buffer\n");
                 break;
-            }
-            else
-            {
+            } else {
                 bp = new_buf + (bp - buf);
                 buf = new_buf;
             }
