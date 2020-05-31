@@ -1,4 +1,4 @@
-# SMash
+# Simple Bash
 
 A basic implementation of Bash.
 
