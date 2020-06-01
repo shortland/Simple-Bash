@@ -1,6 +1,6 @@
 # Simple Bash
 
-A basic implementation of Bash.
+A simple implementation of Bash. Except that all commands are executed asynchronously.
 
 ## Author
 
