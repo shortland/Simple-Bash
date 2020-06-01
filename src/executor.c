@@ -12,33 +12,42 @@ executor_jobs *executor_execd_head() {
  * Called once to initialize the list of running jobs.
  * Simply creates the **execd_job_list by initializing the first index to 0.
  */
-void executor_init_execd() {
-    execd_job_list = malloc(1 * sizeof(executor_jobs));
+int executor_init_execd() {
+    if ((execd_job_list = malloc(1 * sizeof(executor_jobs))) == NULL) {
+        debug("error: unable to allocate space for execd job list\n");
+        return -1;
+    }
+
     execd_job_list->cmd = NULL;
     execd_job_list->next = NULL;
     execd_job_list->prev = NULL;
 
-    return;
+    return 0;
 }
 
 /**
  * Add a new job to the head of the job list.
  */
-void executor_push_execd(commander *cmd) {
-    executor_jobs *new = malloc(1 * sizeof(executor_jobs));
+int executor_push_execd(commander *cmd) {
+    executor_jobs *new;
 
-    // populate the new one
+    if ((new = malloc(1 * sizeof(executor_jobs))) == NULL) {
+        debug("error: unable to allocate space for a new job via push\n");
+        return -1;
+    }
+
+    /** populate the new one */
     new->cmd = cmd;
     new->next = execd_job_list;
     new->prev = NULL;
 
-    // push up the old one
+    /** push up the old one */
     execd_job_list->prev = new;
 
-    // set the head to the new one
+    /** set the head to the new one */
     execd_job_list = new;
 
-    return;
+    return 0;
 }
 
 /**
@@ -54,7 +63,6 @@ void executor_pop_execd(int job_id) {
             if (current->prev == NULL && current->next == NULL) {
                 /** This is the initial null node */
                 debug("error: this shouldn't be reachable, technically null node has no cmd, so shouldn't be able to match job_id...\n");
-
                 return;
             }
 
@@ -246,6 +254,9 @@ void executor_exec_bin_command(commander *cmd, string_list *command, char **env_
             fprintf(stderr, "error: execv failed to execute, errno: '%d'\n", errno);
             exit(errno);
         }
+    } else if (pid == -1) {
+        fprintf(stderr, "error: unable to fork");
+        exit(errno);
     }
 
     debug("exec new commands - parent pid: %d (spawned child: %d)\n", getpid(), pid);
@@ -254,31 +265,32 @@ void executor_exec_bin_command(commander *cmd, string_list *command, char **env_
     /**
      * Push the command we just began running into the running jobs list.
      */
-    executor_push_execd(cmd);
+    if (executor_push_execd(cmd) != 0) {
+        fprintf(stderr, "error: unable to push job into job list\n");
+        exit(1);
+    }
 
     return;
 }
 
 char *executor_find_binary(char *command, string_list *bin_list) {
+    struct dirent *de;
+
     if (bin_list == NULL) {
         fprintf(stderr, "error: no binary list available from parsed PATH dir.\n");
-
         return NULL;
     }
 
-    struct dirent *de;
-
     for (int i = 0; i < bin_list->size; i++) {
-        DIR *dr = opendir(bin_list->strings[i]);
-        if (dr == NULL) {
-            debug("error trying to open directory: '%s'\n", bin_list->strings[i]);
+        DIR *dr;
 
+        if ((dr = opendir(bin_list->strings[i])) == NULL) {
+            debug("error trying to open directory: '%s'\n", bin_list->strings[i]);
             return NULL;
         }
 
         while ((de = readdir(dr)) != NULL) {
             if (strcmp(de->d_name, "..") != 0 && strcmp(de->d_name, ".") != 0) {
-                // debug("opened directory: '%s'\n", de->d_name);
                 if (strcmp(de->d_name, command) == 0) {
                     debug("found bin_list dirent with matching bin name\n");
                     closedir(dr);
@@ -295,6 +307,8 @@ char *executor_find_binary(char *command, string_list *bin_list) {
 }
 
 int executor_exec_command(string_list *command, string_list *bin_list, char **env_vars) {
+    commander *cmd = NULL;
+
     if (command == NULL) {
         return COMMAND_RETURN_RETRY;
     }
@@ -302,7 +316,10 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     /**
      * Further parse the command, into something a little more complex than just a string list.
      */
-    commander *cmd = parse_command_from_string_list(command);
+    if ((cmd = parse_command_from_string_list(command)) == NULL) {
+        fprintf(stderr, "error: parse command returned null\n");
+        return COMMAND_RETURN_EXEC_ERR;
+    }
 
     /**
      * Initially, may want to hardcode some commands into the shell.
@@ -318,9 +335,11 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     /** $ pwd - get the cwd of the shell, via getcwd() */
     if (strcmp(command->strings[0], COMMAND_PWD) == 0) {
         char current_path[MAX_PATH];
+
         if (getcwd(current_path, MAX_PATH) == NULL) {
             fprintf(stderr, "error: unable to get current path\n");
             set_last_return_value(COMMAND_RETURN_RETRY);
+
             return COMMAND_RETURN_RETRY;
         }
 
@@ -331,7 +350,8 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
 
     /** $ cd - change dir using chdir() */
     if (strcmp(command->strings[0], COMMAND_CD) == 0) {
-        char *chdir_to;
+        char *chdir_to = NULL;
+
         if ((chdir_to = parse_path_get_env(ENV_HOME_KEY)) == NULL) {
             chdir_to = ROOT_PATH;
         }
@@ -345,6 +365,7 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
         if (chdir(chdir_to) != 0) {
             fprintf(stderr, "error: unable to change directory to '%s'\n", chdir_to);
             set_last_return_value(COMMAND_RETURN_RETRY);
+
             return COMMAND_RETURN_RETRY;
         }
 
@@ -352,13 +373,15 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     }
 
     /** Since not matching any builtin commands - search in bin dirs. */
-    char *bin_dir;
+    char *bin_dir = NULL;
+
     if ((bin_dir = executor_find_binary(command->strings[0], bin_list)) == NULL) {
         if (command->strings[0][0] == '#') {
             return COMMAND_RETURN_COMMENT;
         }
 
         set_last_return_value(COMMAND_RETURN_NOT_FOUND);
+
         return COMMAND_RETURN_NOT_FOUND;
     }
 
@@ -370,7 +393,6 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
      * Execute the binary w/ it's arguments and other misc. info.
      * Call this after finding and setting the binary.
      */
-    // parse_command_debug_commander(cmd);
     pointer_pointer_debug(env_vars, -1);
     executor_exec_bin_command(cmd, command, env_vars);
     executor_debug_execd();
@@ -382,9 +404,14 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
  * Debug print out the current jobs list
  */
 void executor_debug_execd() {
+    executor_jobs *current;
+
     debug2("DEBUG EXECUTOR EXECD JOBS LIST\n");
 
-    executor_jobs *current = execd_job_list;
+    if ((current = execd_job_list) == NULL) {
+        debug2("error: execd_job_list was null\n");
+        return;
+    }
 
     while (current->cmd != NULL) {
         debug2("CURRENT: '%p'\n", current);

@@ -17,7 +17,7 @@ typedef struct string_list {
 
 string_list *string_list_new();
 
-void string_list_direct_insert(string_list *list, int index, char *string);
+int string_list_direct_insert(string_list *list, int index, char *string);
 
 string_list *string_list_from(char *string);
 

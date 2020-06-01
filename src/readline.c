@@ -9,9 +9,9 @@ void readline_set_sig_hook(readline_sig_hook hook) {
 
 char *readline(char *prompt, int fd) {
     int size = 64;
-    char *buf = malloc(size);
+    char *buf = NULL;
 
-    if (buf == NULL) {
+    if ((buf = malloc(size)) == NULL) {
         fprintf(stderr, "error: unable to malloc space for readline buffer\n");
         return NULL;
     }
@@ -52,6 +52,7 @@ char *readline(char *prompt, int fd) {
         } else {
             ready_desc = 1;
         }
+
         check_err = errno;
 
         /** unmask */
@@ -111,5 +112,6 @@ char *readline(char *prompt, int fd) {
     }
 
     *bp = '\0';
+
     return buf;
 }

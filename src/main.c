@@ -39,7 +39,6 @@ int main(int argc, char *argv[], char *envp[]) {
 
         if (strcmp(argv[i], "-v") == 0) {
             fprintf(stdout, "version: %s\n", SMASH_VERSION);
-
             continue;
         }
 
@@ -67,11 +66,15 @@ int main(int argc, char *argv[], char *envp[]) {
     /**
      * Parses out all the environment variables for later ease of retrieval using parse_path_get_env()
      */
-    char **env_list = parse_path_all_env_params(envp);
+    char *path_string = NULL;
+    char **env_list = NULL;
 
-    char *path_string = parse_path_get_env(ENV_PATH_KEY);
+    if ((env_list = parse_path_all_env_params(envp)) == NULL) {
+        fprintf(stderr, "error: unable to parse path of the env variables");
+        return 1;
+    }
 
-    if (path_string == NULL) {
+    if ((path_string = parse_path_get_env(ENV_PATH_KEY)) == NULL) {
         fprintf(stderr, "error: unable to get path string. Is there one? - Check globals.h to configure.\n");
         return 1;
     }
@@ -79,7 +82,12 @@ int main(int argc, char *argv[], char *envp[]) {
     /**
      * Parse directories that have binaries
      */
-    string_list *bin_list = parse_path_bin_dirs(path_string);
+    string_list *bin_list = NULL;
+
+    if ((bin_list = parse_path_bin_dirs(path_string)) == NULL) {
+        fprintf(stderr, "error: unable to parse path of bin dirs");
+        return 1;
+    }
 
     /**
      * Initialize the jobs list
@@ -87,7 +95,10 @@ int main(int argc, char *argv[], char *envp[]) {
      * 
      * Must call before hooking readline.
      */
-    executor_init_execd();
+    if (executor_init_execd() != 0) {
+        fprintf(stderr, "error: unable to initialize executor execd list");
+        return 1;
+    }
 
     /**
      * Set sig hook function in readline
@@ -111,9 +122,11 @@ int main(int argc, char *argv[], char *envp[]) {
     if (filename == NULL) {
         debug("interactive mode enabled\n");
         pointer_pointer_debug(env_list, -1);
+
         return interactive_mode_run(argc, argv, bin_list, env_list);
     }
 
     debug("batch (non-interactive) mode enabled\n");
+
     return batch_mode_run(filename, bin_list, env_list);
 }

@@ -1,10 +1,10 @@
 #include "io.h"
 
 void io_print_files_in_dir(char *path) {
-    struct dirent *de;
-    DIR *dr = opendir(path);
+    struct dirent *de = NULL;
+    DIR *dr = NULL;
 
-    if (dr == NULL) {
+    if ((dr = opendir(path)) == NULL) {
         fprintf(stderr, "error: could not open specified directory.\n");
         return;
     }

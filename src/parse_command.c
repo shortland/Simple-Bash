@@ -33,10 +33,10 @@ int __has_bg_flag(string_list *command) {
  */
 char *__get_output_redirect(string_list *command) {
     char *pos;
+
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL && strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) == NULL) {
             debug("found output redirect key");
-
             return strstr(command->strings[i], OUTPUT_REDIRECT_KEY) + 1;
         }
     }
@@ -53,7 +53,6 @@ char *__get_output_error_redirect(string_list *command) {
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) != NULL) {
             debug("found output redirect key");
-
             return strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) + 2;
         }
     }
@@ -70,7 +69,6 @@ char *__get_input_redirect(string_list *command) {
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL) {
             debug("found input redirect key");
-
             return strstr(command->strings[i], INPUT_REDIRECT_KEY) + 1;
         }
     }
@@ -97,7 +95,14 @@ typedef struct bin_param {
  * and ignore input and output redirection params and the '&' bg key
  */
 bin_param *__get_binary_params(string_list *command) {
-    bin_param *bp = malloc(sizeof(bin_param));
+    bin_param *bp = NULL;
+    int i;
+
+    if ((bp = malloc(sizeof(bin_param))) == NULL) {
+        debug("error: unable to allocate space for bin params bp\n");
+        return NULL;
+    }
+
     bp->num = 0;
     bp->exited = 0;
 
@@ -105,15 +110,14 @@ bin_param *__get_binary_params(string_list *command) {
         return bp;
     }
 
-    // space to hold at least one parameter
-    bp->params = malloc(1 * sizeof(char *));
+    /** space to hold at least one parameter */
+    if ((bp->params = malloc(1 * sizeof(char *))) == NULL) {
+        debug("error: unable to malloc space for params\n");
+        return NULL;
+    }
 
-    int i;
     for (i = 1; i < command->size; i++) {
         if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL || strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL || strcmp(command->strings[i], BACKGROUND_KEY) == 0) {
-            // debug("found ending key... no longer looking for parameters\n");
-            // debug("note: this assumes that an input/output redirect and background(&) would be at the end of the paramter list\n");
-
             bp->num = i - 1;
 
             return bp;
@@ -122,13 +126,17 @@ bin_param *__get_binary_params(string_list *command) {
         debug("found a valid parameter of: '%s'\n", command->strings[i]);
 
         if (i > 1) {
-            bp->params = realloc(bp->params, (1 + i) * sizeof(char *));
+            if ((bp->params = realloc(bp->params, (1 + i) * sizeof(char *))) == NULL) {
+                debug("error: unable to reallocate space for params\n");
+                return NULL;
+            }
         }
 
         /**
          * Determine whether the command parameter is actually a variable we need to parse.
          */
         char *real_arg = command->strings[i];
+
         if (command->strings[i][0] == VARIABLE_START_KEY) {
             if (strcmp(real_arg, LAST_RETURN_KEY) == 0) {
                 debug("should replace last return key\n");
@@ -145,7 +153,11 @@ bin_param *__get_binary_params(string_list *command) {
             }
         }
 
-        bp->params[i - 1] = malloc(strlen(real_arg) + 1);
+        if ((bp->params[i - 1] = malloc(strlen(real_arg) + 1)) == NULL) {
+            debug("error: unable to allocate space for bp params indices\n");
+            return NULL;
+        }
+
         memcpy(bp->params[i - 1], real_arg, strlen(real_arg) + 1);
     }
 
@@ -155,11 +167,17 @@ bin_param *__get_binary_params(string_list *command) {
 }
 
 commander *parse_command_from_string_list(string_list *command) {
+    bin_param *param = NULL;
+    commander *cmd = NULL;
+
     if (command == NULL) {
         return NULL;
     }
 
-    commander *cmd = malloc(sizeof(commander));
+    if ((cmd = malloc(sizeof(commander))) == NULL) {
+        debug("error: unable to malloc space for cmd\n");
+        return NULL;
+    }
 
     cmd->job_id = jobs++;
     cmd->bgfg = __has_bg_flag(command);
@@ -167,15 +185,23 @@ commander *parse_command_from_string_list(string_list *command) {
     cmd->finished = -1;
     cmd->running = -1;
     cmd->exit_code = -1;  // set it later if finished == 1 set exit code. or get it only when finished == 1 too.
-    cmd->raw_command = malloc(sizeof(string_list));
+
+    if ((cmd->raw_command = malloc(sizeof(string_list))) == NULL) {
+        debug("error: unable to allocate space for raw_command\n");
+        return NULL;
+    }
+
     memcpy(cmd->raw_command, command, sizeof(string_list));
 
     cmd->bin_dir = NULL;  // set in executor
     cmd->bin = __get_binary_name(command);
 
-    bin_param *param = __get_binary_params(command);
+    if ((param = __get_binary_params(command)) == NULL) {
+        debug("error: unable to get binary params\n");
+        return NULL;
+    }
+
     if (param->num == 0) {
-        // cmd->bin_params = ;
         cmd->num_bin_params = 0;
     } else {
         cmd->bin_params = param->params;
@@ -192,7 +218,6 @@ commander *parse_command_from_string_list(string_list *command) {
 void parse_command_debug_commander(commander *cmd) {
     if (cmd == NULL) {
         debug("commander was null.\n");
-
         return;
     }
 
@@ -203,12 +228,16 @@ void parse_command_debug_commander(commander *cmd) {
     debug2("cmd; running: '%d'. (-1 no, 1 yes)\n", cmd->running);
     debug2("cmd; exit_code: '%d'. (-1 default)\n", cmd->exit_code);
     debug2("cmd; raw_command: ...\n");
+
     string_list_debug(cmd->raw_command);
+
     debug2("cmd; bin_dir: '%s'\n", cmd->bin_dir);
     debug2("cmd; bin: '%s'\n", cmd->bin);
     debug2("cmd; num_bin_params: '%d'\n", cmd->num_bin_params);
     debug2("cmd; bin_params: ...\n");
+
     pointer_pointer_debug(cmd->bin_params, cmd->num_bin_params);
+
     debug2("cmd; output_redirect: '%s'\n", cmd->output_redirect);
     debug2("cmd; output_error_redirect: '%s'\n", cmd->output_error_redirect);
     debug2("cmd; input_redirect: '%s'\n", cmd->input_redirect);

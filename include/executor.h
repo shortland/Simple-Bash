@@ -34,11 +34,11 @@ executor_jobs *executor_execd_head();
 
 int executor_exec_command(string_list *command, string_list *bin_list, char **envs_vars);
 
-void executor_init_execd();
+int executor_init_execd();
 
 void executor_pop_execd(int job_id);
 
-void executor_push_execd(commander *cmd);
+int executor_push_execd(commander *cmd);
 
 void executor_debug_execd();
 
