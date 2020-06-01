@@ -59,7 +59,7 @@ int signals_readline_operator() {
                     executor_pop_execd(current->cmd->job_id);
                 }
             } else {
-                debug2("error; child didn't have an exit status code.\n");
+                debug2("error; child didn't have an exit status code; might be result of SIGFAULT (or some run-time crash)\n");
             }
 
             if (current->next == NULL) {

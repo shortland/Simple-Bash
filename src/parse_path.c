@@ -10,26 +10,15 @@ void set_last_return_value(int code) {
     LAST_RETURN = code;
 }
 
-void parse_path_debug_env_variables() {
-    debug2("attempting to print out all env_variables.\n");
-
-    int i = 0;
-
-    while (env_variables[i] != NULL) {
-        debug2("ENV_VARIABLE - key: '%s'\n", env_variables[i]->key);
-        debug2("ENV_VARIABLE - value: '%s'\n", env_variables[i]->value);
-        debug2("---- / END PARSE_PATH_DEBUG_ENV_VARIABLES() / ----\n");
-
-        i++;
-    }
-
-    return;
-}
-
 /**
  * Parse out all the environment variables, and set it in the static variable @see env_params
  */
-void parse_path_all_env_params(char *envp[]) {
+char **parse_path_all_env_params(char *envp[]) {
+    char **env_list = pointer_pointer_dup(envp);
+    debug2("contents of new created envlist\n");
+    pointer_pointer_debug(env_list, -1);
+    debug2("done printing contents of envlist\n");
+
     int i = 0;
     char *token = NULL;
     char *path_value = NULL;
@@ -73,7 +62,7 @@ void parse_path_all_env_params(char *envp[]) {
     env_variables[i - 1] = malloc(sizeof(NULL));
     env_variables[i - 1] = NULL;
 
-    return;
+    return env_list;
 }
 
 /**
@@ -124,4 +113,20 @@ string_list *parse_path_bin_dirs(char *path_str) {
     }
 
     return bin_list;
+}
+
+void parse_path_debug_env_variables() {
+    debug2("attempting to print out all env_variables.\n");
+
+    int i = 0;
+
+    while (env_variables[i] != NULL) {
+        debug2("ENV_VARIABLE - key: '%s'\n", env_variables[i]->key);
+        debug2("ENV_VARIABLE - value: '%s'\n", env_variables[i]->value);
+        debug2("---- / END PARSE_PATH_DEBUG_ENV_VARIABLES() / ----\n");
+
+        i++;
+    }
+
+    return;
 }

@@ -32,7 +32,7 @@ typedef struct executor_jobs {
  */
 executor_jobs *executor_execd_head();
 
-int executor_exec_command(string_list *command, string_list *bin_list);
+int executor_exec_command(string_list *command, string_list *bin_list, char **envs_vars);
 
 void executor_init_execd();
 

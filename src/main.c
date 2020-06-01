@@ -37,6 +37,12 @@ int main(int argc, char *argv[], char *envp[]) {
             continue;
         }
 
+        if (strcmp(argv[i], "-v") == 0) {
+            fprintf(stdout, "version: %s\n", SMASH_VERSION);
+
+            continue;
+        }
+
         if (access(argv[i], F_OK) != -1) {
             debug("attempting to execute shell file.\n");
 
@@ -61,7 +67,7 @@ int main(int argc, char *argv[], char *envp[]) {
     /**
      * Parses out all the environment variables for later ease of retrieval using parse_path_get_env()
      */
-    parse_path_all_env_params(envp);
+    char **env_list = parse_path_all_env_params(envp);
 
     char *path_string = parse_path_get_env(ENV_PATH_KEY);
 
@@ -104,9 +110,10 @@ int main(int argc, char *argv[], char *envp[]) {
      */
     if (filename == NULL) {
         debug("interactive mode enabled\n");
-        return interactive_mode_run(argc, argv, bin_list);
+        pointer_pointer_debug(env_list, -1);
+        return interactive_mode_run(argc, argv, bin_list, env_list);
     }
 
     debug("batch (non-interactive) mode enabled\n");
-    return batch_mode_run(filename, bin_list);
+    return batch_mode_run(filename, bin_list, env_list);
 }

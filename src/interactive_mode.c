@@ -1,6 +1,6 @@
 #include "interactive_mode.h"
 
-int interactive_mode_run(int argc, char *argv[], string_list *bin_list) {
+int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **env_vars) {
     /**
      * Read in a line of text
      */
@@ -9,12 +9,15 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list) {
         debug("input read: '%s'\n", input_line);
 
         string_list *cmd = parse_command_to_string_list(strdup(input_line));
+
         if (cmd == NULL) {
             continue;
         }
+
         string_list_debug(cmd);
 
-        int executor_ret = executor_exec_command(cmd, bin_list);
+        int executor_ret = executor_exec_command(cmd, bin_list, env_vars);
+
         if (executor_ret == COMMAND_RETURN_EXIT) {
             return 0;
         } else if (executor_ret == COMMAND_RETURN_RETRY) {

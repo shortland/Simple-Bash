@@ -103,8 +103,10 @@ void executor_pop_execd(int job_id) {
 /**
  * Execute the specified command. This'll add it to the execd_job_list
  */
-void executor_exec_bin_command(commander *cmd, string_list *command) {
+void executor_exec_bin_command(commander *cmd, string_list *command, char **env_vars) {
     pid_t pid;
+
+    // pointer_pointer_debug(env_vars, -1);
 
     if ((pid = fork()) == 0) {
         /**
@@ -212,7 +214,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command) {
          */
         if (fd_out != -1) {
             if (dup2(fd_out, fileno(stdout)) == -1) {
-                fprintf(stderr, "error: unable to replace outfile with fd.");
+                fprintf(stderr, "error: unable to replace outfile with fd.\n");
                 exit(errno);
             }
 
@@ -224,7 +226,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command) {
          */
         if (fd_err_out != -1) {
             if (dup2(fd_err_out, fileno(stderr)) == -1) {
-                fprintf(stderr, "error: unable to replace outerr with fd.");
+                fprintf(stderr, "error: unable to replace outerr with fd.\n");
                 exit(errno);
             }
 
@@ -236,8 +238,12 @@ void executor_exec_bin_command(commander *cmd, string_list *command) {
          */
         errno = 0;
         debug("RUNNING: %s\n", full_command);
-        if (execvp(full_command, command_args) == -1) {
-            fprintf(stderr, "error: execvp failed to execute, errno: '%d'", errno);
+        fflush(stderr);
+
+        pointer_pointer_debug(env_vars, -1);
+
+        if (execve(dest, command_args, env_vars) == -1) {
+            fprintf(stderr, "error: execv failed to execute, errno: '%d'\n", errno);
             exit(errno);
         }
     }
@@ -288,7 +294,7 @@ char *executor_find_binary(char *command, string_list *bin_list) {
     return NULL;
 }
 
-int executor_exec_command(string_list *command, string_list *bin_list) {
+int executor_exec_command(string_list *command, string_list *bin_list, char **env_vars) {
     if (command == NULL) {
         return COMMAND_RETURN_RETRY;
     }
@@ -365,7 +371,8 @@ int executor_exec_command(string_list *command, string_list *bin_list) {
      * Call this after finding and setting the binary.
      */
     // parse_command_debug_commander(cmd);
-    executor_exec_bin_command(cmd, command);
+    pointer_pointer_debug(env_vars, -1);
+    executor_exec_bin_command(cmd, command, env_vars);
     executor_debug_execd();
 
     return COMMAND_RETURN_SUCCESS;

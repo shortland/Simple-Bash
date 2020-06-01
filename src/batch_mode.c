@@ -1,6 +1,6 @@
 #include "batch_mode.h"
 
-int batch_mode_run(char *filename, string_list *bin_list) {
+int batch_mode_run(char *filename, string_list *bin_list, char **env_list) {
     FILE *infile = fopen(filename, "r");
 
     if (infile == NULL) {
@@ -24,7 +24,7 @@ int batch_mode_run(char *filename, string_list *bin_list) {
 
         string_list_debug(cmd);
 
-        int executor_ret = executor_exec_command(cmd, bin_list);
+        int executor_ret = executor_exec_command(cmd, bin_list, env_list);
 
         if (executor_ret == COMMAND_RETURN_EXIT) {
             return 0;

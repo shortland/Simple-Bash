@@ -13,6 +13,6 @@
 #include "signals.h"
 #include "string_list.h"
 
-int interactive_mode_run(int argc, char *argv[], string_list *bin_list);
+int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **env_list);
 
 #endif

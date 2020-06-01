@@ -20,5 +20,7 @@ int debug(const char *str, ...) {
     fprintf(stderr, "\033[0m");
     va_end(arg);
 
+    fflush(stderr);
+
     return num;
 }

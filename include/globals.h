@@ -3,6 +3,7 @@
 
 #define MAX_PATH 128
 
+static char *SMASH_VERSION = "1.0.2";
 static char *ROOT_PATH = "/";
 static char *ENV_PATH_KEY = "PATH";
 static char *ENV_HOME_KEY = "HOME";

@@ -25,7 +25,7 @@ static env_params **env_variables;
 
 string_list *parse_path_bin_dirs(char *path_str);
 
-void parse_path_all_env_params(char *envp[]);
+char **parse_path_all_env_params(char *envp[]);
 
 void parse_path_debug_env_variables();
 

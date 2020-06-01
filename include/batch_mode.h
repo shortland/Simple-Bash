@@ -13,6 +13,6 @@
 #include "signals.h"
 #include "string_list.h"
 
-int batch_mode_run(char *filename, string_list *bin_list);
+int batch_mode_run(char *filename, string_list *bin_list, char **env_list);
 
 #endif
