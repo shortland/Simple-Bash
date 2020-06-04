@@ -2,8 +2,6 @@
 
 A simple implementation of Shell. 
 
-Except that all commands are executed asynchronously.
-
 ## Author
 
 Ilan Kleiman
