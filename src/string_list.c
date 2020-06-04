@@ -100,29 +100,6 @@ void string_list_push(string_list *list, char *string) {
 }
 
 /**
- * Debug-Print out the contents of the string_list data struct and all of the strings stored in its array.
- */
-void string_list_debug(string_list *list) {
-    debug2("String List Debug:\n");
-
-    if (list == NULL) {
-        debug2("Error: String List is NULL\n");
-        return;
-    }
-
-    debug("List Size: %d\n", list->size);
-
-    for (int i = 0; i < list->size; i++) {
-        debug2("Index: %d\n", i);
-        debug2("V-Length: %lu\n", strlen(list->strings[i]));
-        debug2("Value: %s\n", list->strings[i]);
-        debug2("---- / END STRING_LIST_DEBUG() / ----\n");
-    }
-
-    return;
-}
-
-/**
  * String list from a specified delimited
  */
 string_list *string_list_from_delim(char *string, char *delim) {
@@ -150,4 +127,54 @@ string_list *string_list_from_delim(char *string, char *delim) {
     }
 
     return list;
+}
+
+char *string_list_string(string_list *list) {
+    char *str = NULL;
+    int pos = 0;
+
+    if ((str = malloc(1)) == NULL) {
+        return NULL;
+    }
+
+    for (int i = 0; i < list->size; ++i) {
+        pos = strlen(str);
+
+        if ((str = realloc(str, (strlen(str) + strlen(list->strings[i]) + 1))) == NULL) {
+            debug("error: unable to allocate space for string list string");
+            return NULL;
+        }
+
+        if (pos != 0) {
+            str[pos] = ' ';
+            pos++;
+        }
+
+        memcpy(&(str[pos]), list->strings[i], strlen(list->strings[i]) + 1);
+    }
+
+    return str;
+}
+
+/**
+ * Debug-Print out the contents of the string_list data struct and all of the strings stored in its array.
+ */
+void string_list_debug(string_list *list) {
+    debug2("String List Debug:\n");
+
+    if (list == NULL) {
+        debug2("Error: String List is NULL\n");
+        return;
+    }
+
+    debug("List Size: %d\n", list->size);
+
+    for (int i = 0; i < list->size; i++) {
+        debug2("Index: %d\n", i);
+        debug2("V-Length: %lu\n", strlen(list->strings[i]));
+        debug2("Value: %s\n", list->strings[i]);
+        debug2("---- / END STRING_LIST_DEBUG() / ----\n");
+    }
+
+    return;
 }

@@ -3,7 +3,7 @@
 
 #define MAX_PATH 128
 
-static char *SMASH_VERSION = "1.0.4";
+static char *SMASH_VERSION = "1.0.5";
 static char *ROOT_PATH = "/";
 static char *ENV_PATH_KEY = "PATH";
 static char *ENV_HOME_KEY = "HOME";
@@ -18,5 +18,6 @@ static const char NULL_CHAR = '\0';
 static char *LAST_RETURN_KEY = "$?";
 static char *PROMPT = "smash> ";
 static char *DEBUG_FLAG = "-d";
+static char *HISTORY_FILE = ".smash_history";
 
 #endif

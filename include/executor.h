@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,7 @@
 #include "command_return_list.h"
 #include "debug.h"
 #include "globals.h"
+#include "internal_command/history.h"
 #include "parse_command.h"
 #include "parse_path.h"
 #include "pointer_pointer_helper.h"

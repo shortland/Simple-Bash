@@ -309,6 +309,7 @@ char *executor_find_binary(char *command, string_list *bin_list) {
 
 int executor_exec_command(string_list *command, string_list *bin_list, char **env_vars) {
     commander *cmd = NULL;
+    char *home_dir = NULL;
 
     if (command == NULL) {
         return COMMAND_RETURN_RETRY;
@@ -320,6 +321,18 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     if ((cmd = parse_command_from_string_list(command)) == NULL) {
         fprintf(stderr, "error: parse command returned null\n");
         return COMMAND_RETURN_EXEC_ERR;
+    }
+
+    /**
+     * Record the command into the history file
+     */
+
+    if ((home_dir = getenv("HOME")) == NULL) {
+        home_dir = getpwuid(getuid())->pw_dir;
+    }
+
+    if (internal_command_history_write(home_dir, HISTORY_FILE, command) != 0) {
+        fprintf(stderr, "warning: unable to write command to history file.\n");
     }
 
     /**
@@ -367,6 +380,16 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
             fprintf(stderr, "error: unable to change directory to '%s'\n", chdir_to);
             set_last_return_value(COMMAND_RETURN_RETRY);
 
+            return COMMAND_RETURN_RETRY;
+        }
+
+        return COMMAND_RETURN_INTERNAL_CMD;
+    }
+
+    /** $ history - shows previously used commands */
+    if (strcmp(command->strings[0], COMMAND_HISTORY) == 0) {
+        if (internal_command_history(home_dir, HISTORY_FILE) != 0) {
+            fprintf(stderr, "error: unable to get history\n");
             return COMMAND_RETURN_RETRY;
         }
 

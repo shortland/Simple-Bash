@@ -15,6 +15,8 @@ char *readline(char *prompt, int fd) {
     char *buf = NULL;
     int size = 64;
 
+    debug("reading line\n");
+
     if ((buf = malloc(size)) == NULL) {
         fprintf(stderr, "error: unable to malloc space for readline buffer\n");
         return NULL;
@@ -23,8 +25,10 @@ char *readline(char *prompt, int fd) {
     char c;
     char *bp = buf;
 
-    fprintf(stdout, "%s", prompt);
-    fflush(stdout);
+    if (prompt != NULL) {
+        fprintf(stdout, "%s", prompt);
+        fflush(stdout);
+    }
 
     while (1) {
         /**
@@ -116,6 +120,8 @@ char *readline(char *prompt, int fd) {
     }
 
     *bp = '\0';
+
+    debug("finsihed reading line");
 
     return buf;
 }

@@ -5,6 +5,7 @@ SRCD := src
 TSTD := test
 BLDD := build
 INCD := include
+INCD_IC := internal_command
 
 MAIN  := $(BLDD)/main.o
 
@@ -35,7 +36,7 @@ debug: all
 setup: $(BLDD)
 
 $(BLDD):
-	mkdir -p $(BLDD)
+	mkdir -p $(BLDD) $(BLDD)/$(INCD_IC)
 
 $(EXEC): $(ALL_OBJF)
 	$(CC) $^ -o $@ $(LIBS)

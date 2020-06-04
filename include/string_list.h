@@ -23,8 +23,10 @@ string_list *string_list_from(char *string);
 
 void string_list_push(string_list *list, char *string);
 
-void string_list_debug(string_list *list);
-
 string_list *string_list_from_delim(char *string, char *delim);
+
+char *string_list_string(string_list *list);
+
+void string_list_debug(string_list *list);
 
 #endif
