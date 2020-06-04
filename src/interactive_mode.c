@@ -34,6 +34,31 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **e
             debug("finished executing internal command\n");
             continue;
         } else {
+            debug("finally just continue\n");
+
+            /**
+             * Wait for previous job to finish.
+             * Must get most recently created job first... Then check if it's done.
+             */
+            executor_jobs *newest;
+            if ((newest = executor_newest_job()) == NULL) {
+                debug("there is no existing newest job\n");
+            } else {
+                debug("the newest job was started on: %d\n", newest->cmd->started);
+
+                /** Wait for specified time/until cmd is finished then prompt again */
+                int current_time = (unsigned long)time(NULL);
+                int allowed_elapsed = 2;  // seconds
+
+                debug("waiting for job to complete before prompting\n");
+
+                /** When a job finishes, break out of waiting and allow prompt */
+                while (has_completed != 1)
+                    ;
+
+                debug("technically job done so can prompt\n");
+            }
+
             continue;
         }
     }

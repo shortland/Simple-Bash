@@ -7,9 +7,13 @@ void readline_set_sig_hook(readline_sig_hook hook) {
     return;
 }
 
+/**
+ * Read in text up until a new line character '\n'.
+ * Prompts only after waiting for previous job to finish or after waiting a specified amount of time.
+ */
 char *readline(char *prompt, int fd) {
-    int size = 64;
     char *buf = NULL;
+    int size = 64;
 
     if ((buf = malloc(size)) == NULL) {
         fprintf(stderr, "error: unable to malloc space for readline buffer\n");
@@ -96,10 +100,10 @@ char *readline(char *prompt, int fd) {
         }
 
         if (bp - buf >= size - 1) {
+            char *new_buf = NULL;
             size <<= 1;
-            char *new_buf = realloc(buf, size);
 
-            if (new_buf == NULL) {
+            if ((new_buf = realloc(buf, size)) == NULL) {
                 fprintf(stderr, "error: unable to realloc for input buffer\n");
                 break;
             } else {

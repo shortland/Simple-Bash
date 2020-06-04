@@ -223,8 +223,8 @@ void parse_command_debug_commander(commander *cmd) {
 
     debug2("cmd; job_id: '%d'.\n", cmd->job_id);
     debug2("cmd; bgfg: '%d'. (-1 fg; 1 bg)\n", cmd->bgfg);
-    debug2("cmd; started: '%d'. (-1 no, 1 yes)\n", cmd->started);
-    debug2("cmd; finished: '%d'. (-1 no, 1 yes)\n", cmd->finished);
+    debug2("cmd; started: '%d'. (timestamp started)\n", cmd->started);
+    debug2("cmd; finished: '%d'. (timestamp finished)\n", cmd->finished);
     debug2("cmd; running: '%d'. (-1 no, 1 yes)\n", cmd->running);
     debug2("cmd; exit_code: '%d'. (-1 default)\n", cmd->exit_code);
     debug2("cmd; raw_command: ...\n");

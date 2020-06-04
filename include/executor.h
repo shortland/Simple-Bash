@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "command_return_list.h"
@@ -39,6 +40,8 @@ int executor_init_execd();
 void executor_pop_execd(int job_id);
 
 int executor_push_execd(commander *cmd);
+
+executor_jobs *executor_newest_job();
 
 void executor_debug_execd();
 

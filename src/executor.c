@@ -29,7 +29,7 @@ int executor_init_execd() {
  * Add a new job to the head of the job list.
  */
 int executor_push_execd(commander *cmd) {
-    executor_jobs *new;
+    executor_jobs *new = NULL;
 
     if ((new = malloc(1 * sizeof(executor_jobs))) == NULL) {
         debug("error: unable to allocate space for a new job via push\n");
@@ -115,6 +115,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command, char **env_
     pid_t pid;
 
     // pointer_pointer_debug(env_vars, -1);
+    cmd->started = (unsigned long)time(NULL);
 
     if ((pid = fork()) == 0) {
         /**
@@ -398,6 +399,34 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     executor_debug_execd();
 
     return COMMAND_RETURN_SUCCESS;
+}
+
+executor_jobs *executor_newest_job() {
+    executor_jobs *current = execd_job_list;
+    executor_jobs *newest = execd_job_list;
+
+    debug("getting newest existing job\n");
+
+    if (current == NULL || current->cmd == NULL) {
+        debug("no existing newest job\n");
+        return NULL;
+    }
+
+    while (current->cmd != NULL) {
+        debug("getting newest existing job2\n");
+        if (current->cmd->started >= newest->cmd->started) {
+            newest = current;
+        }
+
+        /** Go to next job */
+        if (current->next == NULL) {
+            break;
+        }
+
+        current = current->next;
+    }
+
+    return newest;
 }
 
 /**

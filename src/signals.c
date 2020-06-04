@@ -50,11 +50,13 @@ int signals_readline_operator() {
                 current->cmd->finished = 1;
 
                 if (status == 0) {
-                    debug2("child exited with status 0\n");
-                    executor_pop_execd(current->cmd->job_id);
+                    debug("child exited with status 0\n");
+                    current->cmd->finished = (unsigned long)time(NULL);
+                    // executor_pop_execd(current->cmd->job_id);
                 } else {
-                    debug2("child exit not-ok: '%d'\n", WEXITSTATUS(status));
-                    executor_pop_execd(current->cmd->job_id);
+                    debug("child exit not-ok: '%d'\n", WEXITSTATUS(status));
+                    current->cmd->finished = (unsigned long)time(NULL);
+                    // executor_pop_execd(current->cmd->job_id);
                 }
             } else {
                 // TODO: remove child from list... (use executor_pop_execd())

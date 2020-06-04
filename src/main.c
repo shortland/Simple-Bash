@@ -39,7 +39,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
         if (strcmp(argv[i], "-v") == 0) {
             fprintf(stdout, "version: %s\n", SMASH_VERSION);
-            continue;
+            return 0;
         }
 
         if (access(argv[i], F_OK) != -1) {

@@ -18,10 +18,11 @@ typedef struct commander {
     int bgfg;  // -1 = is foreground job, 1 is background job.
 
     pid_t pid;      // should only have non-zero pid if it's been started
-    int started;    // 1 = has started, -1 = has not started.
-    int finished;   // 1 = finsihsed, -1 = has no finished.
     int running;    // 1 = running, -1 = not running.
     int exit_code;  // exit code of this command after it finished running
+
+    int started;   // timestamp when started
+    int finished;  // timestamp when finished
 
     string_list *raw_command;
 
