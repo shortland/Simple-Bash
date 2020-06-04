@@ -13,6 +13,7 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **e
         debug("input read: '%s'\n", input_line);
 
         if ((cmd = parse_command_to_string_list(strdup(input_line))) == NULL) {
+            fprintf(stdout, "\n");
             continue;
         }
 
@@ -21,17 +22,22 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **e
 
         /** Check output of executor */
         if ((executor_ret = executor_exec_command(cmd, bin_list, env_vars)) == COMMAND_RETURN_EXIT) {
+            fprintf(stdout, "\n");
             return 0;
         } else if (executor_ret == COMMAND_RETURN_RETRY) {
             /** error should be given by executor */
+            fprintf(stdout, "\n");
             continue;
         } else if (executor_ret == COMMAND_RETURN_NOT_FOUND) {
             fprintf(stderr, "smash: command not found: %s\n", cmd->strings[0]);
+            fprintf(stdout, "\n");
             continue;
         } else if (executor_ret == COMMAND_RETURN_COMMENT) {
+            fprintf(stdout, "\n");
             continue;
         } else if (executor_ret == COMMAND_RETURN_INTERNAL_CMD) {
             debug("finished executing internal command\n");
+            fprintf(stdout, "\n");
             continue;
         } else {
             debug("finally just continue\n");
@@ -53,6 +59,8 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **e
 
                 debug("technically job done so can prompt\n");
             }
+
+            fprintf(stdout, "\n");
 
             continue;
         }

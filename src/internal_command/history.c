@@ -29,7 +29,9 @@ int internal_command_history(char *home_path, char *history_file) {
 int internal_command_history_write(char *home_path, char *history_file, string_list *command) {
     FILE *in_file = NULL;
     char *raw_cmd = NULL;
+    time_t current_time;
     char path[MAX_PATH];
+    char timestamp[22];
 
     if ((raw_cmd = string_list_string(command)) == NULL) {
         fprintf(stderr, "warning: unable to get full raw command from string list.\n");
@@ -39,6 +41,15 @@ int internal_command_history_write(char *home_path, char *history_file, string_l
 
     if ((in_file = fopen(path, "a+")) == NULL) {
         fprintf(stderr, "error: unable to open history file for reading: %s\n", path);
+        return 1;
+    }
+
+    time(&current_time);
+    struct tm ts = *localtime(&current_time);
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S $ ", &ts);
+
+    if (write(fileno(in_file), timestamp, 22) != 22) {
+        fprintf(stderr, "error: short write when timestamp to history file.\n");
         return 1;
     }
 

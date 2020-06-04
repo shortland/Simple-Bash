@@ -19,6 +19,7 @@
 #include "debug.h"
 #include "globals.h"
 #include "internal_command/history.h"
+#include "internal_command/pwd.h"
 #include "parse_command.h"
 #include "parse_path.h"
 #include "pointer_pointer_helper.h"

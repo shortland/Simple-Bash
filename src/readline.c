@@ -26,6 +26,8 @@ char *readline(char *prompt, int fd) {
     char *bp = buf;
 
     if (prompt != NULL) {
+        internal_command_pwd();
+
         fprintf(stdout, "%s", prompt);
         fflush(stdout);
     }
@@ -121,7 +123,7 @@ char *readline(char *prompt, int fd) {
 
     *bp = '\0';
 
-    debug("finsihed reading line");
+    debug("finsihed reading line\n");
 
     return buf;
 }

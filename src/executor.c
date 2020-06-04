@@ -323,16 +323,8 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
         return COMMAND_RETURN_EXEC_ERR;
     }
 
-    /**
-     * Record the command into the history file
-     */
-
     if ((home_dir = getenv("HOME")) == NULL) {
         home_dir = getpwuid(getuid())->pw_dir;
-    }
-
-    if (internal_command_history_write(home_dir, HISTORY_FILE, command) != 0) {
-        fprintf(stderr, "warning: unable to write command to history file.\n");
     }
 
     /**
@@ -341,6 +333,11 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
      * Then if still not found - try to find the command in one of the /bin/ dirs.
      */
 
+    /** $ history - show previous commands executed */
+    if (internal_command_history_write(home_dir, HISTORY_FILE, command) != 0) {
+        fprintf(stderr, "warning: unable to write command to history file.\n");
+    }
+
     /** $ exit - exit the prog. */
     if (strcmp(command->strings[0], COMMAND_EXIT) == 0) {
         return COMMAND_RETURN_EXIT;
@@ -348,16 +345,12 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
 
     /** $ pwd - get the cwd of the shell, via getcwd() */
     if (strcmp(command->strings[0], COMMAND_PWD) == 0) {
-        char current_path[MAX_PATH];
-
-        if (getcwd(current_path, MAX_PATH) == NULL) {
+        if (internal_command_pwd() != 0) {
             fprintf(stderr, "error: unable to get current path\n");
             set_last_return_value(COMMAND_RETURN_RETRY);
 
             return COMMAND_RETURN_RETRY;
         }
-
-        fprintf(stdout, "%s\n", current_path);
 
         return COMMAND_RETURN_INTERNAL_CMD;
     }
@@ -390,6 +383,8 @@ int executor_exec_command(string_list *command, string_list *bin_list, char **en
     if (strcmp(command->strings[0], COMMAND_HISTORY) == 0) {
         if (internal_command_history(home_dir, HISTORY_FILE) != 0) {
             fprintf(stderr, "error: unable to get history\n");
+            set_last_return_value(COMMAND_RETURN_RETRY);
+
             return COMMAND_RETURN_RETRY;
         }
 
