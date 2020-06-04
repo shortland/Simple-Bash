@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "debug.h"
 #include "globals.h"
@@ -21,8 +22,8 @@ typedef struct commander {
     int running;    // 1 = running, -1 = not running.
     int exit_code;  // exit code of this command after it finished running
 
-    int started;   // timestamp when started
-    int finished;  // timestamp when finished
+    time_t started;   // timestamp when started
+    time_t finished;  // timestamp when finished
 
     string_list *raw_command;
 

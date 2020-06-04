@@ -45,11 +45,6 @@ int interactive_mode_run(int argc, char *argv[], string_list *bin_list, char **e
                 debug("there is no existing newest job\n");
             } else {
                 debug("the newest job was started on: %d\n", newest->cmd->started);
-
-                /** Wait for specified time/until cmd is finished then prompt again */
-                int current_time = (unsigned long)time(NULL);
-                int allowed_elapsed = 2;  // seconds
-
                 debug("waiting for job to complete before prompting\n");
 
                 /** When a job finishes, break out of waiting and allow prompt */

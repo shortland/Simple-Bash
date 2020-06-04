@@ -115,7 +115,7 @@ void executor_exec_bin_command(commander *cmd, string_list *command, char **env_
     pid_t pid;
 
     // pointer_pointer_debug(env_vars, -1);
-    cmd->started = (unsigned long)time(NULL);
+    cmd->started = time(NULL);
 
     if ((pid = fork()) == 0) {
         /**

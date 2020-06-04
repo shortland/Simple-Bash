@@ -28,7 +28,7 @@ int __has_bg_flag(string_list *command) {
 
 /**
  * Determine the output redirect file for the command
- * TODO: get jsut the file name and remove the arrow
+ * TODO: get just the file name and remove the arrow
  * @returns paramters 
  */
 char *__get_output_redirect(string_list *command) {
@@ -36,7 +36,18 @@ char *__get_output_redirect(string_list *command) {
 
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], OUTPUT_REDIRECT_KEY) != NULL && strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) == NULL) {
-            debug("found output redirect key");
+            debug("found output redirect key\n");
+
+            if (strcmp(strstr(command->strings[i], OUTPUT_REDIRECT_KEY) + 1, "") == 0 || (strstr(command->strings[i], OUTPUT_REDIRECT_KEY) + 1) == NULL) {
+                // the char after the > is empty string/null so the output file is probably the next string list value: `> out.txt`
+                if (i + 1 < command->size) {
+                    return command->strings[i + 1];
+                }
+
+                return NULL;
+            }
+
+            // the next char after > is not empty, thus it has the file name immediately afterwards: `>out.txt`
             return strstr(command->strings[i], OUTPUT_REDIRECT_KEY) + 1;
         }
     }
@@ -52,7 +63,16 @@ char *__get_output_redirect(string_list *command) {
 char *__get_output_error_redirect(string_list *command) {
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) != NULL) {
-            debug("found output redirect key");
+            debug("found output redirect key\n");
+
+            if (strcmp(strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) + 2, "") == 0 || (strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) + 2) == NULL) {
+                if (i + 1 < command->size) {
+                    return command->strings[i + 1];
+                }
+
+                return NULL;
+            }
+
             return strstr(command->strings[i], OUTPUT_ERROR_REDIRECT_KEY) + 2;
         }
     }
@@ -68,7 +88,16 @@ char *__get_output_error_redirect(string_list *command) {
 char *__get_input_redirect(string_list *command) {
     for (int i = 0; i < command->size; i++) {
         if (strstr(command->strings[i], INPUT_REDIRECT_KEY) != NULL) {
-            debug("found input redirect key");
+            debug("found input redirect key\n");
+
+            if (strcmp(strstr(command->strings[i], INPUT_REDIRECT_KEY) + 1, "") == 0 || (strstr(command->strings[i], INPUT_REDIRECT_KEY) + 1) == NULL) {
+                if (i + 1 < command->size) {
+                    return command->strings[i + 1];
+                }
+
+                return NULL;
+            }
+
             return strstr(command->strings[i], INPUT_REDIRECT_KEY) + 1;
         }
     }
@@ -223,8 +252,8 @@ void parse_command_debug_commander(commander *cmd) {
 
     debug2("cmd; job_id: '%d'.\n", cmd->job_id);
     debug2("cmd; bgfg: '%d'. (-1 fg; 1 bg)\n", cmd->bgfg);
-    debug2("cmd; started: '%d'. (timestamp started)\n", cmd->started);
-    debug2("cmd; finished: '%d'. (timestamp finished)\n", cmd->finished);
+    debug2("cmd; started: '%ld'. (timestamp started)\n", cmd->started);
+    debug2("cmd; finished: '%ld'. (timestamp finished)\n", cmd->finished);
     debug2("cmd; running: '%d'. (-1 no, 1 yes)\n", cmd->running);
     debug2("cmd; exit_code: '%d'. (-1 default)\n", cmd->exit_code);
     debug2("cmd; raw_command: ...\n");

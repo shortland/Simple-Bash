@@ -51,11 +51,11 @@ int signals_readline_operator() {
 
                 if (status == 0) {
                     debug("child exited with status 0\n");
-                    current->cmd->finished = (unsigned long)time(NULL);
+                    current->cmd->finished = time(NULL);
                     // executor_pop_execd(current->cmd->job_id);
                 } else {
                     debug("child exit not-ok: '%d'\n", WEXITSTATUS(status));
-                    current->cmd->finished = (unsigned long)time(NULL);
+                    current->cmd->finished = time(NULL);
                     // executor_pop_execd(current->cmd->job_id);
                 }
             } else {
